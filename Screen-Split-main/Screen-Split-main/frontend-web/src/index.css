@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  ScreenSplit — design system
+  Playful, Gen-Z forward. Cream background, ink text, electric lime as the
+  hero accent, hot coral for "shame", soft mint for redemption.
+  All colors HSL.
+*/
+
+@layer base {
+  :root {
+    --keyboard-inset: 0px;
+    /* Surface */
+    --background: 42 60% 96%;          /* warm cream */
+    --foreground: 240 18% 10%;         /* near-black ink */
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 18% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 18% 10%;
+
+    /* Brand */
+    --primary: 240 18% 10%;            /* ink — used for chunky CTAs */
+    --primary-foreground: 80 90% 65%;  /* lime text on ink */
+
+    --secondary: 42 40% 90%;
+    --secondary-foreground: 240 18% 10%;
+
+    --muted: 42 30% 92%;
+    --muted-foreground: 240 8% 40%;
+
+    --accent: 80 90% 65%;              /* electric lime */
+    --accent-foreground: 240 18% 10%;
+
+    --destructive: 8 90% 60%;          /* hot coral / "in jail" */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 18% 10%;             /* hard ink borders */
+    --input: 240 12% 88%;
+    --ring: 80 90% 55%;
+
+    --radius: 1.25rem;                 /* chunky pill / card */
+
+    /* ScreenSplit custom semantics */
+    --jail: 8 90% 60%;                 /* worst offender red */
+    --jail-glow: 8 100% 70%;
+    --champion: 142 70% 45%;           /* rank 1 green */
+    --champion-glow: 142 80% 60%;
+    --rank-2: 195 85% 55%;             /* sky */
+    --rank-3: 38 95% 60%;              /* amber */
+
+    /* Category colors */
+    --cat-social: 320 85% 62%;
+    --cat-stream: 8 90% 60%;
+    --cat-neutral: 240 8% 50%;
+    --cat-productive: 142 60% 45%;
+
+    /* Effects */
+    --shadow-chunky: 4px 4px 0 0 hsl(240 18% 10%);
+    --shadow-chunky-lg: 6px 6px 0 0 hsl(240 18% 10%);
+    --shadow-soft: 0 8px 24px -8px hsl(240 18% 10% / 0.15);
+    --gradient-champ: linear-gradient(135deg, hsl(80 90% 65%), hsl(142 70% 55%));
+    --gradient-jail: linear-gradient(135deg, hsl(8 90% 60%), hsl(330 85% 55%));
+    --gradient-cream: linear-gradient(180deg, hsl(42 60% 96%), hsl(42 50% 92%));
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 18% 8%;
+    --foreground: 42 60% 96%;
+    --card: 240 14% 12%;
+    --card-foreground: 42 60% 96%;
+    --popover: 240 14% 12%;
+    --popover-foreground: 42 60% 96%;
+    --primary: 80 90% 65%;
+    --primary-foreground: 240 18% 10%;
+    --secondary: 240 10% 18%;
+    --secondary-foreground: 42 60% 96%;
+    --muted: 240 10% 16%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 80 90% 65%;
+    --accent-foreground: 240 18% 10%;
+    --destructive: 8 90% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 80 90% 65%;
+    --input: 240 10% 20%;
+    --ring: 80 90% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    min-height: 100%;
+  }
+  body {
+    min-height: 100%;
+    padding-bottom: var(--keyboard-inset);
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-image:
+      radial-gradient(hsl(240 18% 10% / 0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  #root {
+    min-height: 100%;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .font-display {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .font-mono {
+    font-family: 'Space Mono', monospace;
+  }
+}
+
+@layer components {
+  .chunky-card {
+    @apply bg-card border-2 border-foreground rounded-[var(--radius)];
+    box-shadow: var(--shadow-chunky);
+  }
+  .chunky-card-lg {
+    @apply bg-card border-2 border-foreground rounded-[var(--radius)];
+    box-shadow: var(--shadow-chunky-lg);
+  }
+  .jail-glow {
+    box-shadow:
+      0 0 0 2px hsl(var(--jail)),
+      0 0 24px hsl(var(--jail-glow) / 0.6),
+      4px 4px 0 0 hsl(240 18% 10%);
+  }
+  .champ-glow {
+    box-shadow:
+      0 0 0 2px hsl(var(--champion)),
+      0 0 24px hsl(var(--champion-glow) / 0.5),
+      4px 4px 0 0 hsl(240 18% 10%);
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

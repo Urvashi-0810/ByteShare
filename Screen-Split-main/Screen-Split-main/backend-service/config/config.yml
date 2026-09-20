@@ -1,0 +1,50 @@
+meta:
+  appName: "Nirikshan Portal"
+  appURL: "http://localhost:8090"
+  senderName: "Nirikshan Support"
+  senderAddress: "${SMTP_SENDER_EMAIL}"
+  hideControls: false
+
+smtp:
+  enabled: true
+  host: "${SMTP_HOST}"
+  port: 587
+  username: "${SMTP_USER}"
+  password: "${SMTP_PASS}"
+  tls: false
+  
+s3:
+  enabled: true
+  bucket: "${S3_BUCKET_NAME}"
+  region: "${S3_BUCKET_REGION}"
+  enpoint: "${S3_ENDPOINT}"
+  accessKey: "${S3_KEY}"
+  secret: "${S3_SECRET}"
+
+logs:
+  maxDays: 30
+  logIP: true
+
+backups:
+  cronMaxKeep: 3
+
+batch:
+  enabled: true
+  maxRequests: 50
+  timeout: 3
+
+rateLimits:
+  enabled: false
+  rules:
+    - label: "*:auth"
+      maxRequests: 2
+      duration: 3
+    - label: "*:create"
+      maxRequests: 20
+      duration: 5
+    - label: "/api/batch"
+      maxRequests: 3
+      duration: 1
+    - label: "/api/"
+      maxRequests: 300
+      duration: 10

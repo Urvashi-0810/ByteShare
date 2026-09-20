@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ScreenSplit Palette (Hex derived from HSL) -->
+    <color name="bg_cream">#FAF7EF</color>
+    <color name="primary_ink">#18181F</color>
+    <color name="accent_lime">#C6FF4A</color>
+    <color name="accent_coral">#F24E1E</color>
+
+    <!-- Secondary & Muted -->
+    <color name="muted_cream">#F2EFE6</color>
+    <color name="gray_ink">#7A7A8A</color>
+
+    <!-- Category Colors -->
+    <color name="cat_social">#F06292</color>
+    <color name="cat_stream">#F24E1E</color>
+    <color name="cat_neutral">#7A7A8A</color>
+    <color name="cat_productive">#2E7D32</color>
+
+    <!-- Rank Colors -->
+    <color name="rank_1">#4CAF50</color>
+    <color name="rank_2">#03A9F4</color>
+    <color name="rank_3">#FF9800</color>
+
+    <!-- Basic -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Legacy / Compatibility -->
+    <color name="primary_black">#18181F</color>
+    <color name="gray_border">#E0E0E0</color>
+    <color name="cat_streaming">#F24E1E</color>
+</resources>
