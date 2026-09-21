@@ -11,17 +11,20 @@ object UsageStatsCollector {
     private val socialPackages = setOf(
         "com.instagram.android", "com.facebook.katana", "com.twitter.android",
         "com.zhiliaoapp.musically", "com.snapchat.android", "com.reddit.frontpage",
-        "com.whatsapp", "com.discord"
+        "com.whatsapp", "com.discord", "com.facebook.orca", "com.linkedin.android",
+        "org.telegram.messenger"
     )
 
     private val streamPackages = setOf(
         "com.netflix.mediaclient", "com.amazon.avod.thirdpartyclient",
-        "com.google.android.youtube", "com.spotify.music"
+        "com.google.android.youtube", "com.spotify.music", "in.startv.hotstar",
+        "com.disney.plus", "com.hulu"
     )
 
     private val productivePackages = setOf(
         "com.google.android.apps.docs.editors.docs", "com.notion.android",
-        "com.slack", "com.google.android.calendar", "com.duolingo"
+        "com.slack", "com.google.android.calendar", "com.duolingo",
+        "com.microsoft.office.word", "com.trello"
     )
 
     fun getCategory(packageName: String): String = when {
