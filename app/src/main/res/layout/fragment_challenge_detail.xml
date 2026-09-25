@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_cream">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Back Button Bar -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/btn_back_challenge"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentStart="true"
+                    android:background="@drawable/button_chunky"
+                    android:backgroundTint="@color/white"
+                    android:padding="10dp"
+                    android:src="@android:drawable/ic_menu_revert"
+                    app:tint="@color/primary_ink" />
+            </RelativeLayout>
+
+            <!-- Large Hero Emoji -->
+            <FrameLayout
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_chunky"
+                android:backgroundTint="@color/white">
+
+                <TextView
+                    android:id="@+id/txt_detail_hero_emoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="🧘"
+                    android:textSize="48sp" />
+            </FrameLayout>
+
+            <!-- Title & Tags -->
+            <TextView
+                android:id="@+id/txt_detail_title"
+                style="@style/ByteShareTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:text="Screen Sabbath\nredemption"
+                android:textSize="26sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tag_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_chunky"
+                    android:backgroundTint="@color/primary_ink"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="SABBATH"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="6dp"
+                    android:text="•"
+                    android:textColor="@color/gray_ink" />
+
+                <TextView
+                    android:id="@+id/tag_frequency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="STARTS DAILY"
+                    android:textColor="@color/gray_ink"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- INSTRUCTIONS CARD -->
+            <LinearLayout
+                style="@style/ByteShareCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="ⓘ"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:fontFamily="sans-serif-black"
+                        android:text="INSTRUCTIONS"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txt_instructions_quote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="sans-serif"
+                    android:text="&quot;Pledge a 4-hour phone-free window. Shave 0.2 off your multiplier.&quot;"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="14sp"
+                    android:textStyle="italic" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="16dp"
+                    android:background="#E5E5EA" />
+
+                <!-- Requirement Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="REQUIREMENT ⓘ"
+                        android:textColor="@color/gray_ink"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/txt_requirement"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:gravity="end"
+                        android:text="4-hour phone-free window\n(Verified via inactivity)"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="12sp" />
+                </RelativeLayout>
+
+                <!-- Reward Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="REWARD"
+                        android:textColor="@color/gray_ink"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/badge_detail_reward"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/button_chunky"
+                        android:backgroundTint="#EBFBCC"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="-0.2 Multiplier"
+                        android:textColor="#2B6B00"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <!-- ACCEPT CHALLENGE BUTTON -->
+            <Button
+                android:id="@+id/btn_accept_challenge"
+                style="@style/ByteShareButton"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/button_chunky"
+                android:backgroundTint="@color/primary_ink"
+                android:text="Accept Challenge"
+                android:textColor="@color/accent_lime" />
+
+            <!-- Active Pod Participants Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Active Pod Participants"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="REAL-TIME STATS"
+                    android:textColor="@color/gray_ink"
+                    android:textSize="10sp" />
+            </RelativeLayout>
+
+            <!-- Participants Container -->
+            <LinearLayout
+                android:id="@+id/participants_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical" />
+
+            <!-- HOW IT WORKS CARD -->
+            <LinearLayout
+                style="@style/ByteShareCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="20dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/button_chunky"
+                    android:backgroundTint="@color/white">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:fontFamily="sans-serif-black"
+                        android:text="✓"
+                        android:textColor="#2E7D32"
+                        android:textSize="22sp" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="HOW IT WORKS"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/txt_how_it_works"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="Detection is handled via ByteShare's background inactivity hook. We verify you haven't opened any restricted apps during your focus window. GPS inactivity confirms stationary phone placement."
+                    android:textColor="@color/gray_ink"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
