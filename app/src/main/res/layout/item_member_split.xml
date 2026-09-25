@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row_member_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
+
+    <!-- Member Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@color/white">
+
+            <TextView
+                android:id="@+id/txt_member_avatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🐼"
+                android:textSize="20sp" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/txt_member_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:fontFamily="sans-serif-bold"
+            android:text="Rahul"
+            android:textColor="@color/primary_ink"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/badge_you"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@color/accent_lime"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="YOU"
+            android:textColor="@color/primary_ink"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Multiplier -->
+    <TextView
+        android:id="@+id/txt_member_mult"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:fontFamily="sans-serif-bold"
+        android:text="0.50"
+        android:textColor="@color/gray_ink"
+        android:textSize="15sp" />
+
+    <!-- Amount Owed -->
+    <TextView
+        android:id="@+id/txt_member_pays"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:fontFamily="sans-serif-black"
+        android:text="₹250"
+        android:textColor="@color/primary_ink"
+        android:textSize="18sp" />
+
+</LinearLayout>

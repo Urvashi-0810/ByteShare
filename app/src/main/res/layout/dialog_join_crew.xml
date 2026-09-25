@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_chunky"
+    android:backgroundTint="@color/bg_cream"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Handle indicator bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="#D1D1D6" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:text="Join crew"
+        android:textColor="@color/primary_ink"
+        android:textSize="28sp" />
+
+    <!-- INVITE CODE -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="sans-serif-black"
+        android:text="INVITE CODE"
+        android:textColor="@color/gray_ink"
+        android:textSize="12sp" />
+
+    <EditText
+        android:id="@+id/edit_invite_code"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/card_chunky"
+        android:backgroundTint="@color/muted_cream"
+        android:gravity="center"
+        android:hint="ABC123"
+        android:inputType="textCapCharacters"
+        android:letterSpacing="0.2"
+        android:maxLength="8"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/primary_ink"
+        android:textColorHint="#9918181F"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- JOIN CREW BUTTON -->
+    <Button
+        android:id="@+id/btn_join_crew_submit"
+        style="@style/ByteShareButton"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/button_chunky"
+        android:backgroundTint="@color/primary_ink"
+        android:text="Join crew"
+        android:textColor="@color/accent_lime" />
+
+</LinearLayout>
