@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import com.example.byteshare.R
 import com.example.byteshare.data.ChallengeRepository
 import com.example.byteshare.data.ParticipantStatus
+import com.example.byteshare.logic.AdManager
 
 class ChallengeDetailFragment : Fragment() {
 
@@ -68,6 +69,13 @@ class ChallengeDetailFragment : Fragment() {
                 btnAccept.text = "Accept Challenge"
                 btnAccept.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.primary_ink)
                 btnAccept.setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_lime))
+            }
+        }
+
+        // Rewarded Video Ad button
+        view.findViewById<Button>(R.id.btn_watch_rewarded_ad)?.setOnClickListener {
+            AdManager.showRewardedAd(requireActivity()) { rewardAmount ->
+                Toast.makeText(requireContext(), "🎉 Earned +20 Social XP! Reward level: $rewardAmount", Toast.LENGTH_LONG).show()
             }
         }
 

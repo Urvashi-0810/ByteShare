@@ -9,6 +9,8 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
 import com.example.byteshare.data.UsageStatsCollector
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 
 class StatsFragment : Fragment() {
 
@@ -19,6 +21,11 @@ class StatsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         updateUsageUI(view)
+
+        // Load AdMob Banner Ad
+        val adView = view.findViewById<AdView>(R.id.ad_view_stats)
+        val adRequest = AdRequest.Builder().build()
+        adView?.loadAd(adRequest)
     }
 
     private fun updateUsageUI(view: View) {
