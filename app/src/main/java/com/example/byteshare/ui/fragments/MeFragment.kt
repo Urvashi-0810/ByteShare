@@ -26,6 +26,10 @@ class MeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        view.findViewById<View>(R.id.card_upgrade_pro)?.setOnClickListener {
+            PaywallDialogFragment.show(parentFragmentManager)
+        }
+
         if (hasUsageStatsPermission(requireContext())) {
             updateUsageUI(view)
         } else {

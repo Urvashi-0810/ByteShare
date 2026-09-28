@@ -44,6 +44,56 @@
                 android:layout_height="wrap_content"
                 android:text="you@demo.app" />
 
+            <!-- Upgrade to Pro Card -->
+            <RelativeLayout
+                android:id="@+id/card_upgrade_pro"
+                style="@style/ByteShareCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/button_chunky"
+                android:backgroundTint="@color/accent_lime"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="ByteShare Pro 👑"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Remove Ads &amp; Unlock VIP Perks"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/button_chunky"
+                    android:backgroundTint="@color/primary_ink"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:text="UPGRADE"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
             <LinearLayout
                 style="@style/ByteShareCard"
                 android:layout_width="match_parent"

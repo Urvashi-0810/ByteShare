@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.byteshare.logic.AdManager
+import com.example.byteshare.logic.RevenueCatManager
 import com.example.byteshare.ui.fragments.CrewsFragment
 import com.example.byteshare.ui.fragments.FriendsFragment
 import com.example.byteshare.ui.fragments.MeFragment
@@ -17,8 +18,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize AdMob SDK
+        // Initialize AdMob SDK & RevenueCat Purchases SDK
         AdManager.initialize(this)
+        RevenueCatManager.configure(this)
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setOnItemSelectedListener { item ->
