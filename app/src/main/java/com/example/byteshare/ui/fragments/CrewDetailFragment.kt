@@ -10,16 +10,17 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
 import com.example.byteshare.data.Crew
-import com.example.byteshare.data.CrewRepository
+import com.example.byteshare.data.FirebaseCrewRepository
 import com.example.byteshare.data.UsageStatsCollector
+import com.google.firebase.database.ValueEventListener
 
 class CrewDetailFragment : Fragment() {
 
     private var crewId: String? = null
+    private var crewListener: ValueEventListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,16 +36,32 @@ class CrewDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val crews = CrewRepository.getCrews()
-        val crew = crews.find { it.id == crewId } ?: crews.firstOrNull() ?: Crew(
-            id = "1", name = "Sda", emoji = "🍕", memberCount = 4, totalBill = 2000.0, oweAmount = 600.0, inviteCode = "A56KT4"
-        )
-
         // Back button
         view.findViewById<ImageView>(R.id.btn_back).setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
+        val id = crewId ?: return
+
+        // Attach a real-time listener on this specific crew
+        crewListener = FirebaseCrewRepository.listenForCrew(id) { crew ->
+            if (isAdded && crew != null) {
+                bindCrewData(view, crew)
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clean up Firebase listener
+        val id = crewId
+        if (id != null && crewListener != null) {
+            FirebaseCrewRepository.removeCrewListener(id, crewListener!!)
+        }
+        crewListener = null
+    }
+
+    private fun bindCrewData(view: View, crew: Crew) {
         // Header info
         view.findViewById<TextView>(R.id.txt_detail_emoji).text = crew.emoji
         view.findViewById<TextView>(R.id.txt_detail_name).text = crew.name
