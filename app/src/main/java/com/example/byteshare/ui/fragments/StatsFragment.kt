@@ -1,9 +1,12 @@
 package com.example.byteshare.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -18,7 +21,20 @@ class StatsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        updateUsageUI(view)
+        view.findViewById<Button>(R.id.btn_grant_usage).setOnClickListener {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Re-check on return from settings
+        view?.let { v ->
+            val granted = UsageStatsCollector.hasPermission(requireContext())
+            v.findViewById<View>(R.id.usage_permission_card).visibility =
+                if (granted) View.GONE else View.VISIBLE
+            if (granted) updateUsageUI(v)
+        }
     }
 
     private fun updateUsageUI(view: View) {

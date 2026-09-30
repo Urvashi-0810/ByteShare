@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cream canvas scattered with neo-brutalist doodles -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="800dp"
+    android:viewportWidth="360"
+    android:viewportHeight="800">
+
+    <path
+        android:pathData="M0,0h360v800H0z"
+        android:fillColor="#FAF7EF" />
+
+    <!-- big lime circle, top-left, clipped by edge -->
+    <path
+        android:pathData="M30,60a64,64 0 1,0 0.1,0z"
+        android:fillColor="#C6FF4A"
+        android:strokeColor="#18181F"
+        android:strokeWidth="5" />
+
+    <!-- outlined ring, top-right -->
+    <path
+        android:pathData="M316,140a40,40 0 1,0 0.1,0z"
+        android:fillColor="#00000000"
+        android:strokeColor="#18181F"
+        android:strokeWidth="5" />
+
+    <!-- coral diamond, right-middle -->
+    <path
+        android:pathData="M330,340l26,26l-26,26l-26,-26z"
+        android:fillColor="#F24E1E"
+        android:strokeColor="#18181F"
+        android:strokeWidth="5"
+        android:strokeLineJoin="miter" />
+
+    <!-- plus sign, left-middle -->
+    <path
+        android:pathData="M40,330v44M18,352h44"
+        android:strokeColor="#18181F"
+        android:strokeWidth="7"
+        android:strokeLineCap="square" />
+
+    <!-- zigzag, bottom-left -->
+    <path
+        android:pathData="M20,660l24,-24l24,24l24,-24l24,24"
+        android:fillColor="#00000000"
+        android:strokeColor="#18181F"
+        android:strokeWidth="6"
+        android:strokeLineJoin="miter"
+        android:strokeLineCap="square" />
+
+    <!-- big black circle, bottom-right, clipped -->
+    <path
+        android:pathData="M330,760a70,70 0 1,0 0.1,0z"
+        android:fillColor="#18181F" />
+
+    <!-- lime square tilted, bottom-right above circle -->
+    <path
+        android:pathData="M272,620l34,8l-8,34l-34,-8z"
+        android:fillColor="#C6FF4A"
+        android:strokeColor="#18181F"
+        android:strokeWidth="5"
+        android:strokeLineJoin="miter" />
+
+    <!-- small filled dot, top-center-right -->
+    <path
+        android:pathData="M240,60a10,10 0 1,0 0.1,0z"
+        android:fillColor="#18181F" />
+
+    <!-- small coral dot, mid-left -->
+    <path
+        android:pathData="M84,470a9,9 0 1,0 0.1,0z"
+        android:fillColor="#F24E1E"
+        android:strokeColor="#18181F"
+        android:strokeWidth="4" />
+</vector>

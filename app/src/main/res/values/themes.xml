@@ -11,4 +11,9 @@
     </style>
 
     <style name="Theme.ByteShare" parent="Base.Theme.ByteShare" />
+
+    <!-- Lime pill behind the selected bottom-nav icon -->
+    <style name="NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/accent_lime</item>
+    </style>
 </resources>

@@ -27,22 +27,64 @@
                     android:text="You" />
 
                 <ImageView
+                    android:id="@+id/btn_sign_out"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:background="@drawable/button_chunky"
                     android:backgroundTint="@color/white"
+                    android:contentDescription="Sign out"
                     android:padding="8dp"
                     android:src="@android:drawable/ic_lock_power_off"
                     app:tint="@color/primary_ink" />
             </RelativeLayout>
 
             <TextView
+                android:id="@+id/txt_user_email"
                 style="@style/ByteShareSubtitle"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <!-- Usage access pitch (hidden once granted) -->
+            <LinearLayout
+                android:id="@+id/usage_permission_card"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="you@demo.app" />
+                android:layout_marginTop="16dp"
+                android:background="@drawable/card_chunky"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="USAGE ACCESS NEEDED"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Grant Usage Access so ByteShare can show your screen time here."
+                    android:textColor="@color/gray_ink"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/btn_grant_usage_me"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/button_chunky"
+                    android:paddingVertical="12dp"
+                    android:text="Grant Access"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary_ink"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <LinearLayout
                 style="@style/ByteShareCard"
@@ -61,14 +103,18 @@
                     android:backgroundTint="@color/accent_lime">
 
                     <TextView
+                        android:id="@+id/txt_avatar_initial"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="🐯"
-                        android:textSize="40sp" />
+                        android:fontFamily="sans-serif-black"
+                        android:text="?"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="36sp" />
                 </FrameLayout>
 
                 <TextView
+                    android:id="@+id/txt_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
@@ -78,9 +124,9 @@
                     android:textSize="24sp" />
 
                 <TextView
+                    android:id="@+id/txt_crew_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Across 3 crews"
                     android:textColor="@color/gray_ink"
                     android:textSize="14sp" />
 
@@ -98,11 +144,12 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txt_total_owed"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="₹2,100"
+                    android:text="₹0"
                     android:textColor="@color/primary_ink"
                     android:textSize="32sp" />
             </LinearLayout>

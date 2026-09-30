@@ -255,7 +255,6 @@
                         android:id="@+id/txt_invite_url"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="http://byteshare.app/join/A56KT4"
                         android:textColor="@color/gray_ink"
                         android:textSize="11sp" />
                 </LinearLayout>
