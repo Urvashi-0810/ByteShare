@@ -11,8 +11,9 @@ import com.google.firebase.database.ValueEventListener
  * Firebase Realtime Database wrapper for Crew CRUD and real-time listeners.
  *
  * Database structure:
- *   crews/{crewId} -> Crew fields
+ *   crews/{crewId} -> Crew fields (incl. createdBy + members/{uid}: true)
  *   inviteCodes/{code} -> crewId  (O(1) lookup for join-by-code)
+ *   userCrews/{uid}/{crewId} -> true  (per-user crew index)
  */
 object FirebaseCrewRepository {
 
@@ -25,24 +26,34 @@ object FirebaseCrewRepository {
     }
     private val crewsRef: DatabaseReference by lazy { db.getReference("crews") }
     private val inviteCodesRef: DatabaseReference by lazy { db.getReference("inviteCodes") }
+    private val userCrewsRef: DatabaseReference by lazy { db.getReference("userCrews") }
 
     // ---------- Write operations ----------
 
     fun createCrew(crew: Crew, onComplete: (Boolean) -> Unit = {}) {
         try {
+            val uid = AuthRepository.currentUserId
+            if (uid == null) {
+                Log.e(TAG, "Cannot create crew: not signed in")
+                onComplete(false)
+                return
+            }
+
+            // memberCount/oweAmount are derived from members at read time
             val crewMap = mapOf(
                 "name" to crew.name,
                 "emoji" to crew.emoji,
-                "memberCount" to crew.memberCount,
                 "totalBill" to crew.totalBill,
-                "oweAmount" to crew.oweAmount,
                 "inviteCode" to crew.inviteCode,
-                "createdAt" to System.currentTimeMillis()
+                "createdAt" to System.currentTimeMillis(),
+                "createdBy" to uid,
+                "members" to mapOf(uid to true)
             )
 
             val updates = mapOf(
                 "/crews/${crew.id}" to crewMap,
-                "/inviteCodes/${crew.inviteCode.uppercase()}" to crew.id
+                "/inviteCodes/${crew.inviteCode.uppercase()}" to crew.id,
+                "/userCrews/$uid/${crew.id}" to true
             )
 
             db.reference.updateChildren(updates)
@@ -62,6 +73,12 @@ object FirebaseCrewRepository {
 
     fun joinCrewByCode(code: String, onResult: (Crew?) -> Unit) {
         try {
+            val uid = AuthRepository.currentUserId
+            if (uid == null) {
+                Log.e(TAG, "Cannot join crew: not signed in")
+                onResult(null)
+                return
+            }
             val upperCode = code.uppercase()
             inviteCodesRef.child(upperCode).get()
                 .addOnSuccessListener { snapshot ->
@@ -70,19 +87,28 @@ object FirebaseCrewRepository {
                         crewsRef.child(crewId).get()
                             .addOnSuccessListener { crewSnap ->
                                 val crew = snapshotToCrew(crewSnap)
-                                if (crew != null) {
-                                    val newCount = crew.memberCount + 1
-                                    val newOwe = crew.totalBill / newCount
-                                    crewsRef.child(crewId).updateChildren(
-                                        mapOf(
-                                            "memberCount" to newCount,
-                                            "oweAmount" to newOwe
-                                        )
-                                    )
-                                    onResult(crew.copy(memberCount = newCount, oweAmount = newOwe))
-                                } else {
+                                if (crew == null) {
                                     onResult(null)
+                                    return@addOnSuccessListener
                                 }
+                                if (crew.members.containsKey(uid)) {
+                                    // Already a member — no double-join
+                                    onResult(crew)
+                                    return@addOnSuccessListener
+                                }
+                                // Only write membership; counts/owe are derived from members at read time
+                                val updates = mapOf(
+                                    "/crews/$crewId/members/$uid" to true,
+                                    "/userCrews/$uid/$crewId" to true
+                                )
+                                db.reference.updateChildren(updates)
+                                    .addOnSuccessListener {
+                                        onResult(crew.copy(members = crew.members + (uid to true)))
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.e(TAG, "Join write failed for crew $crewId", e)
+                                        onResult(null)
+                                    }
                             }
                             .addOnFailureListener {
                                 Log.e(TAG, "Failed to fetch crew for code $upperCode", it)
@@ -105,23 +131,50 @@ object FirebaseCrewRepository {
 
     // ---------- Read / Listen operations ----------
 
+    /**
+     * Listens on userCrews/{uid} so the user only sees crews they created or joined.
+     */
     fun listenForCrews(onUpdate: (List<Crew>) -> Unit): ValueEventListener? {
         return try {
+            val uid = AuthRepository.currentUserId
+            if (uid == null) {
+                Log.e(TAG, "Cannot listen for crews: not signed in")
+                onUpdate(emptyList())
+                return null
+            }
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val crews = mutableListOf<Crew>()
-                    for (child in snapshot.children) {
-                        snapshotToCrew(child)?.let { crews.add(it) }
+                    val crewIds = snapshot.children.mapNotNull { it.key }
+                    if (crewIds.isEmpty()) {
+                        onUpdate(emptyList())
+                        return
                     }
-                    crews.sortByDescending { it.id.toLongOrNull() ?: 0L }
-                    onUpdate(crews)
+                    val crews = mutableListOf<Crew>()
+                    var pending = crewIds.size
+                    for (crewId in crewIds) {
+                        crewsRef.child(crewId).get()
+                            .addOnSuccessListener { crewSnap ->
+                                snapshotToCrew(crewSnap)?.let { crews.add(it) }
+                                if (--pending == 0) {
+                                    crews.sortByDescending { it.id.toLongOrNull() ?: 0L }
+                                    onUpdate(crews.toList())
+                                }
+                            }
+                            .addOnFailureListener {
+                                Log.e(TAG, "Failed to fetch crew $crewId", it)
+                                if (--pending == 0) {
+                                    crews.sortByDescending { it.id.toLongOrNull() ?: 0L }
+                                    onUpdate(crews.toList())
+                                }
+                            }
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     Log.e(TAG, "Crew listener cancelled", error.toException())
                 }
             }
-            crewsRef.addValueEventListener(listener)
+            userCrewsRef.child(uid).addValueEventListener(listener)
             listener
         } catch (e: Exception) {
             Log.e(TAG, "Exception attaching crew listener", e)
@@ -132,10 +185,45 @@ object FirebaseCrewRepository {
 
     fun removeCrewListener(listener: ValueEventListener) {
         try {
-            crewsRef.removeEventListener(listener)
+            AuthRepository.currentUserId?.let { uid ->
+                userCrewsRef.child(uid).removeEventListener(listener)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Exception removing crew listener", e)
         }
+    }
+
+    /** One-shot fetch of the current user's crews (no listener). */
+    fun fetchMyCrewsOnce(onResult: (List<Crew>) -> Unit) {
+        val uid = AuthRepository.currentUserId
+        if (uid == null) {
+            onResult(emptyList())
+            return
+        }
+        userCrewsRef.child(uid).get()
+            .addOnSuccessListener { snapshot ->
+                val crewIds = snapshot.children.mapNotNull { it.key }
+                if (crewIds.isEmpty()) {
+                    onResult(emptyList())
+                    return@addOnSuccessListener
+                }
+                val crews = mutableListOf<Crew>()
+                var pending = crewIds.size
+                for (crewId in crewIds) {
+                    crewsRef.child(crewId).get()
+                        .addOnSuccessListener { crewSnap ->
+                            snapshotToCrew(crewSnap)?.let { crews.add(it) }
+                            if (--pending == 0) onResult(crews.toList())
+                        }
+                        .addOnFailureListener {
+                            if (--pending == 0) onResult(crews.toList())
+                        }
+                }
+            }
+            .addOnFailureListener {
+                Log.e(TAG, "Failed to fetch my crews", it)
+                onResult(emptyList())
+            }
     }
 
     fun listenForCrew(crewId: String, onUpdate: (Crew?) -> Unit): ValueEventListener? {
@@ -168,37 +256,20 @@ object FirebaseCrewRepository {
 
     // ---------- Helpers ----------
 
-    fun seedDefaultCrewsIfEmpty() {
-        try {
-            crewsRef.get().addOnSuccessListener { snapshot ->
-                if (!snapshot.exists() || !snapshot.hasChildren()) {
-                    Log.d(TAG, "Seeding default crews into Firebase")
-                    val defaults = listOf(
-                        Crew("1", "Sda", "🍕", 4, 2000.0, 600.0, "A56KT4"),
-                        Crew("2", "Foodies", "🍔", 4, 2000.0, 750.0, "FOOD88"),
-                        Crew("3", "Friday night party", "🍺", 4, 2000.0, 750.0, "PARTY9")
-                    )
-                    for (crew in defaults) {
-                        createCrew(crew)
-                    }
-                }
-            }.addOnFailureListener { e ->
-                Log.e(TAG, "Failed to check for existing crews", e)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Exception seeding default crews", e)
-        }
-    }
-
     private fun snapshotToCrew(snapshot: DataSnapshot): Crew? {
         return try {
             val id = snapshot.key ?: return null
             val name = snapshot.child("name").getValue(String::class.java) ?: return null
             val emoji = snapshot.child("emoji").getValue(String::class.java) ?: "🎉"
-            val memberCount = snapshot.child("memberCount").getValue(Int::class.java) ?: 1
             val totalBill = snapshot.child("totalBill").getValue(Double::class.java) ?: 0.0
-            val oweAmount = snapshot.child("oweAmount").getValue(Double::class.java) ?: 0.0
             val inviteCode = snapshot.child("inviteCode").getValue(String::class.java) ?: ""
+            val createdBy = snapshot.child("createdBy").getValue(String::class.java) ?: ""
+            val members = snapshot.child("members").children
+                .mapNotNull { it.key }
+                .associateWith { true }
+
+            // Derive count/owe from members: avoids stale counters and join races
+            val memberCount = members.size.coerceAtLeast(1)
 
             Crew(
                 id = id,
@@ -206,8 +277,10 @@ object FirebaseCrewRepository {
                 emoji = emoji,
                 memberCount = memberCount,
                 totalBill = totalBill,
-                oweAmount = oweAmount,
-                inviteCode = inviteCode
+                oweAmount = totalBill / memberCount,
+                inviteCode = inviteCode,
+                createdBy = createdBy,
+                members = members
             )
         } catch (e: Exception) {
             Log.e(TAG, "Exception parsing crew snapshot", e)

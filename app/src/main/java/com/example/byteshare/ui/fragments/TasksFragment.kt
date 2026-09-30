@@ -8,8 +8,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
-import com.example.byteshare.data.Challenge
+import com.example.byteshare.data.ChallengeDef
+import com.example.byteshare.data.ChallengeProgress
 import com.example.byteshare.data.ChallengeRepository
+import com.example.byteshare.data.ChallengeState
 
 class TasksFragment : Fragment() {
 
@@ -24,35 +26,47 @@ class TasksFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         individualContainer = view.findViewById(R.id.individual_challenges_container)
         groupContainer = view.findViewById(R.id.group_challenges_container)
-
-        renderChallenges()
     }
 
-    private fun renderChallenges() {
+    override fun onResume() {
+        super.onResume()
+        loadChallenges()
+    }
+
+    private fun loadChallenges() {
+        ChallengeRepository.fetchChallenges { defs ->
+            if (!isAdded) return@fetchChallenges
+            // Evaluate active windows so states are fresh before rendering
+            ChallengeRepository.evaluateActiveChallenges(requireContext(), defs) { progress ->
+                if (isAdded) renderChallenges(defs, progress)
+            }
+        }
+    }
+
+    private fun renderChallenges(defs: List<ChallengeDef>, progress: Map<String, ChallengeProgress>) {
         individualContainer.removeAllViews()
         groupContainer.removeAllViews()
 
-        val allChallenges = ChallengeRepository.getChallenges()
-
-        for (challenge in allChallenges) {
+        for (challenge in defs) {
             val targetContainer = if (challenge.isGroupPod) groupContainer else individualContainer
             val itemView = layoutInflater.inflate(R.layout.item_challenge, targetContainer, false)
 
             itemView.findViewById<TextView>(R.id.txt_challenge_emoji).text = challenge.emoji
             itemView.findViewById<TextView>(R.id.txt_challenge_title).text = challenge.title
             itemView.findViewById<TextView>(R.id.txt_challenge_subtitle).text = challenge.subtitle
-            itemView.findViewById<TextView>(R.id.badge_reward).text = challenge.rewardBadge
 
-            val podCountText = itemView.findViewById<TextView>(R.id.txt_pod_count)
-            if (challenge.isGroupPod) {
-                podCountText.visibility = View.VISIBLE
-                podCountText.text = "👥 ${challenge.podCount} pod"
-            } else {
-                podCountText.visibility = View.GONE
+            // Badge reflects live progress state once the user has started the challenge
+            val badge = itemView.findViewById<TextView>(R.id.badge_reward)
+            badge.text = when (progress[challenge.id]?.state) {
+                ChallengeState.ACTIVE -> "IN PROGRESS"
+                ChallengeState.COMPLETED -> "COMPLETED"
+                ChallengeState.FAILED -> "FAILED"
+                else -> challenge.rewardBadge
             }
+
+            itemView.findViewById<TextView>(R.id.txt_pod_count).visibility = View.GONE
 
             itemView.setOnClickListener {
                 openChallengeDetail(challenge.id)

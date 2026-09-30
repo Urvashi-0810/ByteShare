@@ -1,10 +1,13 @@
 package com.example.byteshare.data
 
+import android.app.AppOpsManager
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
+import android.os.Process
 import com.example.byteshare.logic.AppUsage
 import java.util.Calendar
-import java.util.TimeZone
 
 object UsageStatsCollector {
 
@@ -34,29 +37,73 @@ object UsageStatsCollector {
         else -> "neutral"
     }
 
+    fun hasPermission(context: Context): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName
+            )
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
     fun collectTodayUsage(context: Context): List<AppUsage> {
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        // Local-timezone midnight, matching Digital Wellbeing's day boundary
+        val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.SECOND, 0)
         cal.set(Calendar.MILLISECOND, 0)
-        
+
         val begin = cal.timeInMillis
         val end = System.currentTimeMillis()
 
-        val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, begin, end)
-            ?: return emptyList()
+        // Event-based tracking: sum RESUMED->PAUSED intervals per app.
+        // queryUsageStats(INTERVAL_DAILY) returns overlapping/stale buckets that
+        // over-count badly; events match Digital Wellbeing far more closely.
+        val events = usm.queryEvents(begin, end) ?: return emptyList()
+        val foregroundMs = mutableMapOf<String, Long>()
+        val resumedAt = mutableMapOf<String, Long>()
+        val event = UsageEvents.Event()
+
+        // MOVE_TO_FOREGROUND/BACKGROUND share values with ACTIVITY_RESUMED/PAUSED; work on API 24+
+        @Suppress("DEPRECATION")
+        val fgType = UsageEvents.Event.MOVE_TO_FOREGROUND
+        @Suppress("DEPRECATION")
+        val bgType = UsageEvents.Event.MOVE_TO_BACKGROUND
+        val stoppedType = 23 // UsageEvents.Event.ACTIVITY_STOPPED (API 29+)
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            when (event.eventType) {
+                fgType ->
+                    resumedAt[event.packageName] = event.timeStamp
+                bgType, stoppedType -> {
+                    val start = resumedAt.remove(event.packageName) ?: continue
+                    foregroundMs.merge(event.packageName, event.timeStamp - start, Long::plus)
+                }
+            }
+        }
+        // Apps still in the foreground at query time
+        for ((pkg, start) in resumedAt) {
+            foregroundMs.merge(pkg, end - start, Long::plus)
+        }
 
         val pm = context.packageManager
-        val aggregated = stats.filter { it.totalTimeInForeground > 0 }
-            .groupBy { it.packageName }
-            .map { (pkg, list) ->
-                val totalMs = list.sumOf { it.totalTimeInForeground }
+        val ownPackage = context.packageName
+        val aggregated = foregroundMs
+            .filter { (pkg, ms) -> ms > 0 && pkg != ownPackage }
+            .map { (pkg, totalMs) ->
                 val appName = try {
                     pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
                 } catch (e: Exception) { pkg }
-                
+
                 AppUsage(
                     appName = appName,
                     category = getCategory(pkg),

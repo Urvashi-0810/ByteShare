@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_friends"
-        android:icon="@android:drawable/ic_menu_myplaces"
+        android:icon="@drawable/ic_nav_friends"
         android:title="Friends" />
     <item
         android:id="@+id/nav_crews"
-        android:icon="@android:drawable/ic_input_add"
+        android:icon="@drawable/ic_nav_crews"
         android:title="Crews" />
     <item
         android:id="@+id/nav_stats"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:icon="@drawable/ic_nav_stats"
         android:title="Stats" />
     <item
         android:id="@+id/nav_tasks"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:icon="@drawable/ic_nav_tasks"
         android:title="Tasks" />
     <item
         android:id="@+id/nav_me"
-        android:icon="@android:drawable/ic_menu_gallery"
+        android:icon="@drawable/ic_nav_me"
         android:title="Me" />
 </menu>

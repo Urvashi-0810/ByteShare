@@ -1,21 +1,21 @@
 package com.example.byteshare.ui.fragments
 
-import android.app.AppOpsManager
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Process
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.example.byteshare.LoginActivity
 import com.example.byteshare.R
+import com.example.byteshare.data.AuthRepository
+import com.example.byteshare.data.FirebaseCrewRepository
 import com.example.byteshare.data.UsageStatsCollector
-import com.example.byteshare.logic.AppUsage
 
 class MeFragment : Fragment() {
 
@@ -25,27 +25,57 @@ class MeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
         view.findViewById<View>(R.id.card_upgrade_pro)?.setOnClickListener {
             PaywallDialogFragment.show(parentFragmentManager)
         }
-
-        if (hasUsageStatsPermission(requireContext())) {
-            updateUsageUI(view)
-        } else {
-            // Request permission or show a prompt
+        setupProfile(view)
+        loadCrewStats(view)
+        view.findViewById<View>(R.id.btn_grant_usage_me).setOnClickListener {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
     }
 
-    private fun hasUsageStatsPermission(context: Context): Boolean {
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            Process.myUid(),
-            context.packageName
-        )
-        return mode == AppOpsManager.MODE_ALLOWED
+    private fun setupProfile(view: View) {
+        val user = AuthRepository.currentUser
+        val name = user?.displayName ?: "You"
+        view.findViewById<TextView>(R.id.txt_user_name).text = name
+        view.findViewById<TextView>(R.id.txt_user_email).text = user?.email ?: ""
+        view.findViewById<TextView>(R.id.txt_avatar_initial).text =
+            name.firstOrNull()?.uppercase() ?: "?"
+
+        view.findViewById<ImageView>(R.id.btn_sign_out).setOnClickListener {
+            AuthRepository.signOut(requireContext()) {
+                if (isAdded) {
+                    startActivity(Intent(requireContext(), LoginActivity::class.java))
+                    requireActivity().finish()
+                }
+            }
+        }
+    }
+
+    private fun loadCrewStats(view: View) {
+        FirebaseCrewRepository.fetchMyCrewsOnce { crews ->
+            if (!isAdded) return@fetchMyCrewsOnce
+            val count = crews.size
+            view.findViewById<TextView>(R.id.txt_crew_count).text = when (count) {
+                0 -> "No crews yet"
+                1 -> "Across 1 crew"
+                else -> "Across $count crews"
+            }
+            val totalOwed = crews.sumOf { it.oweAmount }.toInt()
+            view.findViewById<TextView>(R.id.txt_total_owed).text = "₹$totalOwed"
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh when returning from the Usage Access settings screen
+        view?.let { v ->
+            val granted = UsageStatsCollector.hasPermission(requireContext())
+            v.findViewById<View>(R.id.usage_permission_card).visibility =
+                if (granted) View.GONE else View.VISIBLE
+            if (granted) updateUsageUI(v)
+        }
     }
 
     private fun updateUsageUI(view: View) {

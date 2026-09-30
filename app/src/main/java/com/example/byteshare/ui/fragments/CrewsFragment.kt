@@ -44,9 +44,6 @@ class CrewsFragment : Fragment() {
             showJoinCrewDialog()
         }
 
-        // Seed defaults if Firebase DB is empty (first run)
-        FirebaseCrewRepository.seedDefaultCrewsIfEmpty()
-
         // Attach real-time listener — crew list updates automatically
         crewListener = FirebaseCrewRepository.listenForCrews { crews ->
             if (isAdded) {
@@ -115,56 +112,19 @@ class CrewsFragment : Fragment() {
             }
         }
 
-        // Friends direct addition toggles
-        val chipRahul = dialogView.findViewById<TextView>(R.id.chip_rahul)
-        val chipPriya = dialogView.findViewById<TextView>(R.id.chip_priya)
-        val chipArjun = dialogView.findViewById<TextView>(R.id.chip_arjun)
-
-        var addRahul = true
-        var addPriya = true
-        var addArjun = false
-
-        chipRahul?.setOnClickListener {
-            addRahul = !addRahul
-            chipRahul.text = if (addRahul) "🐼 Rahul ✓" else "🐼 Rahul +"
-            chipRahul.backgroundTintList = ContextCompat.getColorStateList(
-                requireContext(), if (addRahul) R.color.accent_lime else R.color.muted_cream
-            )
-        }
-
-        chipPriya?.setOnClickListener {
-            addPriya = !addPriya
-            chipPriya.text = if (addPriya) "🦄 Priya ✓" else "🦄 Priya +"
-            chipPriya.backgroundTintList = ContextCompat.getColorStateList(
-                requireContext(), if (addPriya) R.color.accent_lime else R.color.muted_cream
-            )
-        }
-
-        chipArjun?.setOnClickListener {
-            addArjun = !addArjun
-            chipArjun.text = if (addArjun) "🐯 Arjun ✓" else "🐯 Arjun +"
-            chipArjun.backgroundTintList = ContextCompat.getColorStateList(
-                requireContext(), if (addArjun) R.color.accent_lime else R.color.muted_cream
-            )
-        }
-
         btnSubmit.setOnClickListener {
             val name = editName.text.toString().ifBlank { "Friday Night" }
             val bill = editBill.text.toString().toDoubleOrNull() ?: 2000.0
 
-            var count = 1
-            if (addRahul) count++
-            if (addPriya) count++
-            if (addArjun) count++
-
+            // Creator starts alone; others join via invite code
             val inviteCode = generateInviteCode()
             val newCrew = Crew(
                 id = System.currentTimeMillis().toString(),
                 name = name,
                 emoji = selectedEmoji,
-                memberCount = count,
+                memberCount = 1,
                 totalBill = bill,
-                oweAmount = bill / count,
+                oweAmount = bill,
                 inviteCode = inviteCode
             )
 

@@ -40,11 +40,13 @@
                 </LinearLayout>
 
                 <ImageView
+                    android:id="@+id/btn_invite_friend"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:background="@drawable/button_chunky"
+                    android:contentDescription="Invite a friend"
                     android:padding="8dp"
                     android:src="@android:drawable/ic_input_add"
                     app:tint="@color/primary_ink" />
@@ -87,89 +89,66 @@
                 android:textColor="@color/gray_ink"
                 android:textSize="12sp" />
 
-            <!-- Placeholder for Rank Items -->
+            <!-- Contacts permission pitch (hidden once granted) -->
+            <LinearLayout
+                android:id="@+id/contacts_permission_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/card_chunky"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="FIND YOUR PEOPLE"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Allow contact access to discover which of your friends are already on ByteShare."
+                    android:textColor="@color/gray_ink"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/btn_allow_contacts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/button_chunky"
+                    android:paddingVertical="12dp"
+                    android:text="Allow Contacts"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary_ink"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/leaderboard_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:orientation="vertical">
+                android:orientation="vertical" />
 
-                <!-- Mock Rank 1 Item -->
-                <RelativeLayout
-                    style="@style/ByteShareCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="0dp">
-
-                    <FrameLayout
-                        android:id="@+id/avatar_container"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:background="@drawable/button_chunky"
-                        android:backgroundTint="@color/accent_lime">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="🐼"
-                            android:textSize="28sp" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="16dp"
-                        android:layout_toEndOf="@id/avatar_container"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-bold"
-                            android:text="Rahul"
-                            android:textColor="@color/primary_ink"
-                            android:textSize="18sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="376m raw usage"
-                            android:textColor="@color/gray_ink"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:gravity="end"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="567m"
-                            android:textColor="@color/primary_ink"
-                            android:textSize="20sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="RANK 1"
-                            android:textColor="@color/rank_1"
-                            android:textSize="10sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </RelativeLayout>
-
-            </LinearLayout>
+            <!-- Empty state -->
+            <TextView
+                android:id="@+id/txt_leaderboard_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/card_chunky"
+                android:gravity="center"
+                android:padding="24dp"
+                android:text="No friends yet. Invite someone or join a crew!"
+                android:textColor="@color/gray_ink"
+                android:textSize="14sp"
+                android:visibility="gone" />
 
             <!-- AdMob Native Ad Container -->
             <FrameLayout

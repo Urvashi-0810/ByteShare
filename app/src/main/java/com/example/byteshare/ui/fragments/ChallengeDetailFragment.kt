@@ -12,8 +12,10 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
+import com.example.byteshare.data.ChallengeDef
+import com.example.byteshare.data.ChallengeProgress
 import com.example.byteshare.data.ChallengeRepository
-import com.example.byteshare.data.ParticipantStatus
+import com.example.byteshare.data.ChallengeState
 import com.example.byteshare.logic.AdManager
 
 class ChallengeDetailFragment : Fragment() {
@@ -34,26 +36,41 @@ class ChallengeDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val challenge = challengeId?.let { ChallengeRepository.getChallengeById(it) }
-            ?: ChallengeRepository.getChallenges().first()
-
-        // Back button
         view.findViewById<ImageView>(R.id.btn_back_challenge).setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-        // Hero info
+        val id = challengeId ?: return
+        ChallengeRepository.fetchChallenge(id) { def ->
+            if (isAdded && def != null) {
+                bindChallenge(view, def)
+                refreshProgress(view, def)
+            }
+        }
+    }
+
+    private fun bindChallenge(view: View, challenge: ChallengeDef) {
         view.findViewById<TextView>(R.id.txt_detail_hero_emoji).text = challenge.emoji
         view.findViewById<TextView>(R.id.txt_detail_title).text = challenge.title
         view.findViewById<TextView>(R.id.tag_type).text = challenge.tag
         view.findViewById<TextView>(R.id.tag_frequency).text = challenge.startFrequency
-
-        // Instructions
         view.findViewById<TextView>(R.id.txt_instructions_quote).text = challenge.instructions
         view.findViewById<TextView>(R.id.txt_requirement).text = challenge.requirement
         view.findViewById<TextView>(R.id.badge_detail_reward).text = challenge.reward
         view.findViewById<TextView>(R.id.txt_how_it_works).text = challenge.howItWorks
+    }
 
+    private fun refreshProgress(view: View, def: ChallengeDef) {
+        ChallengeRepository.evaluateActiveChallenges(requireContext(), listOf(def)) { progressMap ->
+            if (isAdded) bindProgress(view, def, progressMap[def.id])
+        }
+    }
+
+    private fun bindProgress(view: View, def: ChallengeDef, progress: ChallengeProgress?) {
+        val btn = view.findViewById<Button>(R.id.btn_accept_challenge)
+        val state = progress?.state ?: ChallengeState.NOT_STARTED
+
+        // Participants panel shows own tracking status (group aggregation is a later phase)
         // Accept button
         val btnAccept = view.findViewById<Button>(R.id.btn_accept_challenge)
         var isAccepted = false
@@ -78,38 +95,79 @@ class ChallengeDetailFragment : Fragment() {
                 Toast.makeText(requireContext(), "🎉 Earned +20 Social XP! Reward level: $rewardAmount", Toast.LENGTH_LONG).show()
             }
         }
-
-        // Populate Participants List
         val container = view.findViewById<LinearLayout>(R.id.participants_container)
         container.removeAllViews()
-
-        for (p in challenge.participants) {
+        if (progress != null && state != ChallengeState.NOT_STARTED) {
             val rowView = layoutInflater.inflate(R.layout.item_participant, container, false)
-            rowView.findViewById<TextView>(R.id.txt_participant_avatar).text = p.avatar
-            rowView.findViewById<TextView>(R.id.txt_participant_name).text = p.name
-            rowView.findViewById<TextView>(R.id.txt_participant_detail).text = p.detail
-
+            rowView.findViewById<TextView>(R.id.txt_participant_avatar).text = "Y"
+            rowView.findViewById<TextView>(R.id.txt_participant_name).text = "You"
+            rowView.findViewById<TextView>(R.id.txt_participant_detail).text =
+                "${progress.minutesUsed.toInt()}m used of ${def.limitMinutes.toInt()}m limit"
             val badge = rowView.findViewById<TextView>(R.id.badge_participant_status)
-            when (p.status) {
-                ParticipantStatus.PASS -> {
+            badge.backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), R.color.muted_cream)
+            when (state) {
+                ChallengeState.COMPLETED -> {
                     badge.text = "PASS"
-                    badge.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.muted_cream)
                     badge.setTextColor(ContextCompat.getColor(requireContext(), R.color.cat_productive))
                 }
-                ParticipantStatus.FAIL -> {
+                ChallengeState.FAILED -> {
                     badge.text = "FAIL"
-                    badge.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.muted_cream)
                     badge.setTextColor(ContextCompat.getColor(requireContext(), R.color.cat_stream))
                 }
-                ParticipantStatus.LIVE -> {
+                else -> {
                     badge.text = "LIVE"
-                    badge.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.muted_cream)
                     badge.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray_ink))
                 }
             }
-
             container.addView(rowView)
         }
+
+        when (state) {
+            ChallengeState.NOT_STARTED -> {
+                styleButton(btn, "Accept Challenge", R.color.primary_ink, R.color.accent_lime)
+                btn.isEnabled = true
+                btn.setOnClickListener {
+                    ChallengeRepository.startChallenge(def.id) { ok ->
+                        if (!isAdded) return@startChallenge
+                        if (ok) {
+                            Toast.makeText(requireContext(), "Challenge started — good luck!", Toast.LENGTH_SHORT).show()
+                            refreshProgress(view, def)
+                        } else {
+                            Toast.makeText(requireContext(), "Couldn't start. Check connection.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            ChallengeState.ACTIVE -> {
+                styleButton(btn, "In Progress — Give Up?", R.color.accent_lime, R.color.primary_ink)
+                btn.isEnabled = true
+                btn.setOnClickListener {
+                    ChallengeRepository.abandonChallenge(def.id) { ok ->
+                        if (isAdded && ok) refreshProgress(view, def)
+                    }
+                }
+            }
+            ChallengeState.COMPLETED -> {
+                styleButton(btn, "Completed \u2713", R.color.accent_lime, R.color.primary_ink)
+                btn.isEnabled = false
+            }
+            ChallengeState.FAILED -> {
+                styleButton(btn, "Failed — Try Again", R.color.primary_ink, R.color.accent_lime)
+                btn.isEnabled = true
+                btn.setOnClickListener {
+                    ChallengeRepository.startChallenge(def.id) { ok ->
+                        if (isAdded && ok) refreshProgress(view, def)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun styleButton(btn: Button, label: String, bg: Int, fg: Int) {
+        btn.text = label
+        btn.backgroundTintList = ContextCompat.getColorStateList(requireContext(), bg)
+        btn.setTextColor(ContextCompat.getColor(requireContext(), fg))
     }
 
     companion object {
