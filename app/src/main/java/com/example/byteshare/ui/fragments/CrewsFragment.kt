@@ -1,6 +1,5 @@
 package com.example.byteshare.ui.fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,12 +13,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
 import com.example.byteshare.data.Crew
-import com.example.byteshare.data.CrewRepository
+import com.example.byteshare.data.FirebaseCrewRepository
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.database.ValueEventListener
 
 class CrewsFragment : Fragment() {
 
     private lateinit var crewListContainer: LinearLayout
+    private var crewListener: ValueEventListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -43,12 +44,26 @@ class CrewsFragment : Fragment() {
             showJoinCrewDialog()
         }
 
-        renderCrewList()
+        // Seed defaults if Firebase DB is empty (first run)
+        FirebaseCrewRepository.seedDefaultCrewsIfEmpty()
+
+        // Attach real-time listener — crew list updates automatically
+        crewListener = FirebaseCrewRepository.listenForCrews { crews ->
+            if (isAdded) {
+                renderCrewList(crews)
+            }
+        }
     }
 
-    private fun renderCrewList() {
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clean up the Firebase listener to avoid memory leaks
+        crewListener?.let { FirebaseCrewRepository.removeCrewListener(it) }
+        crewListener = null
+    }
+
+    private fun renderCrewList(crews: List<Crew>) {
         crewListContainer.removeAllViews()
-        val crews = CrewRepository.getCrews()
 
         for (crew in crews) {
             val itemView = layoutInflater.inflate(R.layout.item_crew, crewListContainer, false)
@@ -153,14 +168,18 @@ class CrewsFragment : Fragment() {
                 inviteCode = inviteCode
             )
 
-            CrewRepository.addCrew(newCrew)
-            renderCrewList()
+            // Write to Firebase — the real-time listener will auto-refresh the list
+            FirebaseCrewRepository.createCrew(newCrew) { success ->
+                if (isAdded) {
+                    if (success) {
+                        Toast.makeText(requireContext(), "Crew '$name' created!", Toast.LENGTH_SHORT).show()
+                        openCrewDetail(newCrew.id)
+                    } else {
+                        Toast.makeText(requireContext(), "Failed to create crew. Check connection.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
             dialog.dismiss()
-
-            Toast.makeText(requireContext(), "Crew '$name' created!", Toast.LENGTH_SHORT).show()
-
-            // Open Detail Page for the created crew!
-            openCrewDetail(newCrew.id)
         }
 
         dialog.show()
@@ -181,14 +200,18 @@ class CrewsFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val joined = CrewRepository.joinCrewByCode(code)
-            renderCrewList()
+            // Look up invite code in Firebase
+            FirebaseCrewRepository.joinCrewByCode(code) { crew ->
+                if (isAdded) {
+                    if (crew != null) {
+                        Toast.makeText(requireContext(), "Joined crew ${crew.name}!", Toast.LENGTH_SHORT).show()
+                        openCrewDetail(crew.id)
+                    } else {
+                        Toast.makeText(requireContext(), "Invalid invite code '$code'", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
             dialog.dismiss()
-
-            Toast.makeText(requireContext(), "Joined crew ${joined?.name ?: code}!", Toast.LENGTH_SHORT).show()
-
-            // Open Detail Page for joined crew!
-            joined?.let { openCrewDetail(it.id) }
         }
 
         dialog.show()
