@@ -1,8 +1,0 @@
-.git
-pb_data
-pb_public
-*.log
-*.tmp
-node_modules
-frontend-web
-**/node_modules

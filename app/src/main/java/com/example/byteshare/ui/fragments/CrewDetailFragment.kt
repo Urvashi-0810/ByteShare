@@ -92,6 +92,11 @@ class CrewDetailFragment : Fragment() {
 
         // Populate Why You Pay breakdown from live phone stats
         populateWhyYouPaySection(view, crew)
+
+        // Stripe Payment Button
+        view.findViewById<Button>(R.id.btn_pay_stripe)?.setOnClickListener {
+            PayBillDialogFragment.show(parentFragmentManager, crew.name, crew.oweAmount.toInt())
+        }
     }
 
     private fun populateBillSplitTable(view: View, crew: Crew) {

@@ -37,9 +37,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     
-    // AdMob & RevenueCat
+    // AdMob & RevenueCat & Stripe
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     implementation("com.revenuecat.purchases:purchases:8.12.0")
+    implementation("com.stripe:stripe-android:21.5.0")
 
     // Firebase BoM & Services
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))

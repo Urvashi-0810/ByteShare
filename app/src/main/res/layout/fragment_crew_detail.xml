@@ -387,6 +387,16 @@
                         android:textColor="@color/primary_ink"
                         android:textSize="22sp" />
                 </RelativeLayout>
+
+                <!-- Stripe Checkout Button -->
+                <Button
+                    android:id="@+id/btn_pay_stripe"
+                    style="@style/ByteShareButton"
+                    android:layout_margin="16dp"
+                    android:background="@drawable/button_chunky"
+                    android:backgroundTint="@color/accent_lime"
+                    android:text="Pay Share via Stripe 💳"
+                    android:textColor="@color/primary_ink" />
             </LinearLayout>
 
             <!-- WHY YOU PAY SECTION -->
