@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Shadow/Offset (Black - invisible since main is black, but keeps dimensions consistent) -->
-    <item android:left="6dp" android:top="6dp">
+    <!-- Shadow Offset (4dp) -->
+    <item android:left="4dp" android:top="4dp">
         <shape android:shape="rectangle">
-            <solid android:color="@color/black" />
+            <solid android:color="@color/primary_ink" />
             <corners android:radius="16dp" />
         </shape>
     </item>
-    <!-- Main Card (Black) -->
-    <item android:bottom="6dp" android:right="6dp">
+    <!-- Main Card (Primary Ink) -->
+    <item android:bottom="4dp" android:right="4dp">
         <shape android:shape="rectangle">
-            <solid android:color="@color/primary_black" />
+            <solid android:color="@color/primary_ink" />
+            <stroke android:width="2dp" android:color="@color/primary_ink" />
             <corners android:radius="16dp" />
         </shape>
     </item>

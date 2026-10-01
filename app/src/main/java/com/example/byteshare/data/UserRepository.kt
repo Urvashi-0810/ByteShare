@@ -115,8 +115,9 @@ object UserRepository {
                 val email = profileSnap.child("email").getValue(String::class.java).orEmpty()
                 val streak = profileSnap.child("streak").getValue(Int::class.java) ?: 0
                 
-                val ref = if (useRolling) rollingUsageRef.child(uid) else usageRef.child(uid).child(todayKey())
-                ref.get()
+                val targetRef = if (useRolling) rollingUsageRef.child(uid) else usageRef.child(uid).child(todayKey())
+                
+                targetRef.get()
                     .addOnSuccessListener { usageSnap ->
                         fun mins(key: String) =
                             usageSnap.child(key).getValue(Double::class.java) ?: 0.0
