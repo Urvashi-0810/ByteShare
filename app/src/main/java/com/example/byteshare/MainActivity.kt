@@ -31,6 +31,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        val prefs = getSharedPreferences("ByteSharePrefs", android.content.Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("has_completed_onboarding", false)) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_main)
 
         // Initialize AdMob and RevenueCat SDKs

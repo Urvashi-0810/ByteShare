@@ -24,6 +24,7 @@ object AdManager {
 
     private var rewardedAd: RewardedAd? = null
     private var isInitialized = false
+    private var hasEarnedRewardThisSession = false
 
     fun initialize(context: Context) {
         if (isInitialized) return
@@ -62,15 +63,26 @@ object AdManager {
      * Show Rewarded Video Ad
      */
     fun showRewardedAd(activity: Activity, onRewardEarned: (rewardAmount: Int) -> Unit) {
+        if (hasEarnedRewardThisSession) {
+            android.widget.Toast.makeText(
+                activity,
+                "You have already collected an ad reward this session!",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
         if (rewardedAd != null) {
             rewardedAd?.show(activity) { rewardItem ->
                 Log.d(TAG, "User earned reward: ${rewardItem.amount} ${rewardItem.type}")
+                hasEarnedRewardThisSession = true
                 onRewardEarned(rewardItem.amount)
                 loadRewardedAd(activity) // Preload next ad
             }
         } else {
             Log.d(TAG, "Rewarded Ad wasn't ready yet, attempting to reload")
             loadRewardedAd(activity)
+            hasEarnedRewardThisSession = true
             onRewardEarned(10) // Fallback simulated reward for dev test
         }
     }

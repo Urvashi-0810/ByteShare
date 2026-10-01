@@ -104,6 +104,7 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/button_chunky_ink"
         android:backgroundTint="@null"
+        app:backgroundTint="@null"
         android:text="Pay via Stripe 💳"
         android:textColor="@color/accent_lime"
         android:textSize="15sp"

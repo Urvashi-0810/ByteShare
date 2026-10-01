@@ -64,6 +64,20 @@ class FriendsFragment : Fragment() {
 
         bindPermissionCard(view)
 
+        // Leaderboard Info Card Logic
+        val infoCard = view.findViewById<View>(R.id.leaderboard_info_card)
+        val btnCloseInfo = view.findViewById<View>(R.id.btn_close_info)
+        val prefs = requireContext().getSharedPreferences("ByteSharePrefs", android.content.Context.MODE_PRIVATE)
+        
+        if (prefs.getBoolean("has_seen_leaderboard_info", false)) {
+            infoCard?.visibility = View.GONE
+        } else {
+            btnCloseInfo?.setOnClickListener {
+                infoCard?.visibility = View.GONE
+                prefs.edit().putBoolean("has_seen_leaderboard_info", true).apply()
+            }
+        }
+
         view.findViewById<EditText>(R.id.edit_search_friends)?.doAfterTextChanged {
             renderRows(view)
         }

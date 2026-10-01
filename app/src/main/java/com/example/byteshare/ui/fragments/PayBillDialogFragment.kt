@@ -21,12 +21,18 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
     private var oweAmountMinor: Long = 60000L
     private var multiplier: Double = 1.0
 
+    private lateinit var paymentSheet: PaymentSheet
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crewName = arguments?.getString(ARG_CREW_NAME) ?: "Sda 🍕"
         crewId = arguments?.getString(ARG_CREW_ID).orEmpty()
         oweAmountMinor = arguments?.getLong(ARG_OWE_AMOUNT) ?: 60000L
         multiplier = arguments?.getDouble(ARG_MULTIPLIER) ?: 1.0
+
+        paymentSheet = StripeManager.initPaymentSheet(this) { result ->
+            handlePaymentResult(result)
+        }
     }
 
     override fun onCreateView(
@@ -77,10 +83,7 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
                         java.util.Locale.US, multiplier
                     )
 
-                val sheet = StripeManager.createPaymentSheet(this, payment.publishableKey) { result ->
-                    handlePaymentResult(result)
-                }
-                if (sheet == null || !StripeManager.presentPaymentSheet(sheet, payment.clientSecret)) {
+                if (!StripeManager.presentPaymentSheet(this@PayBillDialogFragment, paymentSheet, payment.publishableKey, payment.clientSecret)) {
                     btnPay.isEnabled = true
                     btnPay.text = "Pay ${formatMoney(oweAmountMinor)}"
                     Toast.makeText(
