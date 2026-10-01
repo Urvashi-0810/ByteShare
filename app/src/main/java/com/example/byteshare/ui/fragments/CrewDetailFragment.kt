@@ -159,7 +159,7 @@ class CrewDetailFragment : Fragment() {
         val requestGeneration = ++memberLoadGeneration
 
         for (uid in memberUids) {
-            UserRepository.fetchFriendEntry(uid) { entry ->
+            UserRepository.fetchFriendEntry(uid, useRolling = true) { entry ->
                 entries.add(entry ?: FriendEntry(
                     uid = uid,
                     name = "Member",

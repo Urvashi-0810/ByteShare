@@ -31,7 +31,7 @@ class UsageSyncWorker(context: Context, params: WorkerParameters) : Worker(conte
         private const val WORK_NAME = "usage_sync"
 
         fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<UsageSyncWorker>(4, TimeUnit.HOURS)
+            val request = PeriodicWorkRequestBuilder<UsageSyncWorker>(15, TimeUnit.MINUTES)
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -40,7 +40,7 @@ class UsageSyncWorker(context: Context, params: WorkerParameters) : Worker(conte
                 .build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 request
             )
         }
