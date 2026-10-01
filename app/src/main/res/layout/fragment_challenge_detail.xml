@@ -212,18 +212,23 @@
                 style="@style/ByteShareButton"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/button_chunky_ink"
+                android:backgroundTint="@null"
                 android:text="Accept Challenge"
-                android:textColor="@color/accent_lime" />
+                android:textColor="@color/accent_lime"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <!-- REWARDED AD BUTTON -->
             <Button
                 android:id="@+id/btn_watch_rewarded_ad"
                 style="@style/ByteShareButton"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/button_chunky"
+                android:background="@drawable/button_chunky_ink"
+                android:backgroundTint="@null"
                 android:text="🎬 Watch Video Ad for +20 Social XP ⭐️"
-                android:textColor="@color/primary_ink"
-                android:textSize="13sp" />
+                android:textColor="@color/accent_lime"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <!-- Active Pod Participants Section -->
             <RelativeLayout

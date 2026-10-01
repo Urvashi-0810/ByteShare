@@ -73,12 +73,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
-            android:background="@drawable/button_chunky"
+            android:background="@drawable/button_chunky_ink"
             android:backgroundTint="@null"
             android:paddingVertical="16dp"
             android:text="Continue with Google"
             android:textAllCaps="false"
-            android:textColor="@color/primary_ink"
+            android:textColor="@color/accent_lime"
             android:textSize="16sp"
             android:textStyle="bold" />
 

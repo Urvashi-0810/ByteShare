@@ -102,13 +102,16 @@
         android:id="@+id/btn_pay_stripe_submit"
         style="@style/ByteShareButton"
         android:layout_marginTop="20dp"
-        android:background="@drawable/button_chunky"
+        android:background="@drawable/button_chunky_ink"
         android:backgroundTint="@null"
-        android:textColor="@color/primary_ink"
+        android:text="Pay via Stripe 💳"
+        android:textColor="@color/accent_lime"
+        android:textSize="15sp"
+        android:textStyle="bold"
         app:icon="@drawable/ic_payment_card"
         app:iconGravity="textStart"
         app:iconPadding="10dp"
-        app:iconTint="@color/primary_ink" />
+        app:iconTint="@color/accent_lime" />
 
     <!-- Disclaimer -->
     <TextView
