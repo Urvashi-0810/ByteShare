@@ -70,6 +70,7 @@
                     app:tint="@color/primary_ink" />
 
                 <EditText
+                    android:id="@+id/edit_search_friends"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"

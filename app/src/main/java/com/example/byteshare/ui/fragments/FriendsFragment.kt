@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -14,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
 import com.example.byteshare.data.AuthRepository
@@ -30,6 +32,7 @@ import com.google.firebase.database.ValueEventListener
 class FriendsFragment : Fragment() {
 
     private val nudgesSentToday = mutableMapOf<String, Int>()
+    private var rankedEntries: List<FriendEntry> = emptyList()
     private var nudgeListener: ValueEventListener? = null
     private var nudgeListenerUid: String? = null
     private var nudgeListenerDay: String? = null
@@ -60,6 +63,10 @@ class FriendsFragment : Fragment() {
         }
 
         bindPermissionCard(view)
+
+        view.findViewById<EditText>(R.id.edit_search_friends)?.doAfterTextChanged {
+            renderRows(view)
+        }
 
         // Load AdMob Native Ad
         val adContainer = view.findViewById<FrameLayout>(R.id.native_ad_container)
@@ -139,35 +146,46 @@ class FriendsFragment : Fragment() {
     }
 
     private fun renderLeaderboard(view: View, friends: List<FriendEntry>, selfEntry: FriendEntry?) {
+        rankedEntries = (friends + listOfNotNull(selfEntry))
+            .distinctBy { it.uid }
+            .sortedBy { it.weightedMinutes } // Lower weighted minutes wins top rank
+        renderRows(view)
+    }
+
+    private fun renderRows(view: View) {
         val container = view.findViewById<LinearLayout>(R.id.leaderboard_container) ?: return
         val empty = view.findViewById<TextView>(R.id.txt_leaderboard_empty)
         container.removeAllViews()
 
-        val ranked = (friends + listOfNotNull(selfEntry))
-            .distinctBy { it.uid }
-            .sortedBy { it.weightedMinutes } // Lower weighted minutes wins top rank
+        val query = view.findViewById<EditText>(R.id.edit_search_friends)?.text?.toString()?.trim().orEmpty()
+        // Keep each entry's overall rank even when the list is filtered.
+        val visible = rankedEntries.withIndex()
+            .filter { query.isEmpty() || it.value.name.contains(query, ignoreCase = true) }
 
-        empty?.visibility = if (ranked.isEmpty()) View.VISIBLE else View.GONE
+        empty?.text = if (rankedEntries.isEmpty()) {
+            "No friends yet. Invite someone or join a crew!"
+        } else {
+            "No friends match \"$query\""
+        }
+        empty?.visibility = if (visible.isEmpty()) View.VISIBLE else View.GONE
 
         val rankColors = intArrayOf(R.color.rank_1, R.color.rank_2, R.color.rank_3)
-        val avatars = listOf("🐼", "🦄", "🐯", "🦊", "🐶", "🦋")
         val currentUid = AuthRepository.currentUserId
 
-        ranked.forEachIndexed { index, entry ->
+        visible.forEach { (index, entry) ->
             val item = layoutInflater.inflate(R.layout.item_leaderboard, container, false)
-            val avatar = avatars.getOrElse(index % avatars.size) { "👤" }
+            val avatar = AVATARS[Math.floorMod(entry.uid.hashCode(), AVATARS.size)]
 
             item.findViewById<TextView>(R.id.txt_rank_number).text = (index + 1).toString()
             item.findViewById<TextView>(R.id.txt_friend_name).text = entry.name
-            
-            // Show Today's screen time
-            val todayMins = entry.rawMinutes.toInt()
+
+            // Scores are based on today's usage snapshot
             item.findViewById<TextView>(R.id.txt_friend_today_time).text = if (entry.usageAvailable) {
                 "${formatMinutes(entry.rawMinutes)} today"
             } else {
                 "Data unavailable"
             }
-            item.findViewById<TextView>(R.id.txt_friend_weighted).text = "${entry.weightedMinutes.toInt()}m"
+            item.findViewById<TextView>(R.id.txt_friend_weighted).text = formatMinutes(entry.weightedMinutes)
 
             val rankLabel = item.findViewById<TextView>(R.id.txt_friend_rank)
             rankLabel.text = "RANK ${index + 1}"
@@ -187,15 +205,8 @@ class FriendsFragment : Fragment() {
                 nudgeButton?.setOnClickListener { showNudgeOptions(entry, nudgeButton, quotaKey) }
             }
 
-            // Click listener on name/card opens Friend Profile Overlay!
             item.setOnClickListener {
-                FriendProfileDialogFragment.show(
-                    fragmentManager = parentFragmentManager,
-                    name = entry.name,
-                    avatar = avatar,
-                    rawMinutes = todayMins,
-                    isSelf = (entry.name == "You" || entry.uid == currentUid)
-                )
+                FriendProfileDialogFragment.show(parentFragmentManager, entry, avatar)
             }
 
             container.addView(item)
@@ -295,6 +306,7 @@ class FriendsFragment : Fragment() {
     }
 
     companion object {
+        private val AVATARS = listOf("🐼", "🦄", "🐯", "🦊", "🐶", "🦋")
         private val NUDGE_MESSAGES = arrayOf(
             "That was your 5-minute break, right?",
             "Even the algorithm thinks you've had enough.",

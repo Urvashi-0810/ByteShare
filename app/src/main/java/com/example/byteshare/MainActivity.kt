@@ -12,6 +12,7 @@ import com.example.byteshare.data.AuthRepository
 import com.example.byteshare.data.UsageStatsCollector
 import com.example.byteshare.data.UsageSyncWorker
 import com.example.byteshare.data.UserRepository
+import com.example.byteshare.data.XpRepository
 import com.example.byteshare.ui.fragments.CrewsFragment
 import com.example.byteshare.ui.fragments.FriendsFragment
 import com.example.byteshare.ui.fragments.MeFragment
@@ -60,6 +61,10 @@ class MainActivity : AppCompatActivity() {
         // Publish profile + today's usage so friends' leaderboards include us
         UserRepository.syncProfileAndUsage(this)
         UsageSyncWorker.schedule(this)
+
+        // Seed XP from Firebase and record daily activity
+        XpRepository.fetchOnce()
+        XpRepository.recordDailyActivity()
     }
 
     private fun showUsageAccessPrompt() {

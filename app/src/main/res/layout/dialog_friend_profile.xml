@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/card_chunky"
@@ -45,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="🐼"
+            tools:text="🐼"
             android:textSize="40sp" />
     </FrameLayout>
 
@@ -56,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:fontFamily="sans-serif-black"
-        android:text="Rahul"
+        tools:text="Friend name"
         android:textColor="@color/primary_ink"
         android:textSize="24sp" />
 
@@ -65,7 +66,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
-        android:text="rahul@demo.app"
+        tools:text="friend@example.com"
         android:textColor="@color/gray_ink"
         android:textSize="12sp" />
 
@@ -79,34 +80,15 @@
         android:backgroundTint="#FF8A65"
         android:paddingHorizontal="14dp"
         android:paddingVertical="6dp"
-        android:text="🔥 5 Day Streak"
+        android:visibility="gone"
+        tools:text="🔥 5 Day Streak"
+        tools:visibility="visible"
         android:textColor="@color/white"
         android:textSize="12sp"
         android:textStyle="bold" />
 
-    <!-- Bio / Quote Card -->
-    <LinearLayout
-        style="@style/ByteShareCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="0dp"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#EBFBCC"
-        android:gravity="center"
-        android:padding="12dp">
 
-        <TextView
-            android:id="@+id/txt_profile_bio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:text="&quot;Trying to stay away from the scroll! 🧘&quot;"
-            android:textColor="@color/primary_ink"
-            android:textSize="13sp"
-            android:textStyle="italic" />
-    </LinearLayout>
-
-    <!-- Daily Stats Cards Row (AVG DAILY & FOCUS SCORE) -->
+    <!-- Daily Stats Cards Row (AVG DAILY & WEIGHTED SCORE) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -129,7 +111,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-bold"
-                android:text="AVG DAILY"
+                android:text="RAW TIME"
                 android:textColor="@color/gray_ink"
                 android:textSize="11sp" />
 
@@ -139,12 +121,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-black"
-                android:text="38m"
+                tools:text="38m"
                 android:textColor="@color/primary_ink"
                 android:textSize="22sp" />
         </LinearLayout>
 
-        <!-- FOCUS SCORE -->
+        <!-- WEIGHTED SCORE (7 days) -->
         <LinearLayout
             style="@style/ByteShareCard"
             android:layout_width="0dp"
@@ -160,17 +142,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-bold"
-                android:text="FOCUS SCORE"
+                android:text="WEIGHTED SCORE"
                 android:textColor="@color/gray_ink"
                 android:textSize="11sp" />
 
             <TextView
-                android:id="@+id/txt_profile_focus_score"
+                android:id="@+id/txt_profile_weighted"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif-black"
-                android:text="84"
+                tools:text="412m"
                 android:textColor="#F24E1E"
                 android:textSize="22sp" />
         </LinearLayout>
@@ -187,7 +169,7 @@
         android:textColor="@color/gray_ink"
         android:textSize="11sp" />
 
-    <!-- Favorite App Card -->
+    <!-- Top Category Card -->
     <RelativeLayout
         style="@style/ByteShareCard"
         android:layout_width="match_parent"
@@ -225,28 +207,28 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-bold"
-                android:text="FAVORITE APP"
+                android:text="TOP CATEGORY"
                 android:textColor="@color/gray_ink"
                 android:textSize="10sp" />
 
             <TextView
-                android:id="@+id/txt_profile_fav_app"
+                android:id="@+id/txt_profile_top_category"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
-                android:text="WhatsApp"
+                tools:text="Social"
                 android:textColor="@color/primary_ink"
                 android:textSize="15sp" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/txt_profile_fav_app_time"
+            android:id="@+id/txt_profile_top_category_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:fontFamily="sans-serif-black"
-            android:text="79m"
+            tools:text="79m"
             android:textColor="@color/primary_ink"
             android:textSize="16sp" />
     </RelativeLayout>
@@ -289,7 +271,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-bold"
-                android:text="WEEKLY TOTAL"
+                android:text="TOTAL TIME"
                 android:textColor="@color/gray_ink"
                 android:textSize="10sp" />
 
@@ -297,7 +279,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
-                android:text="Last 7 days"
+                android:text="Today"
                 android:textColor="@color/primary_ink"
                 android:textSize="15sp" />
         </LinearLayout>
@@ -309,30 +291,9 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:fontFamily="sans-serif-black"
-            android:text="263m"
+            tools:text="263m"
             android:textColor="#F24E1E"
             android:textSize="16sp" />
     </RelativeLayout>
-
-    <!-- Keep Grinding Button -->
-    <Button
-        android:id="@+id/btn_keep_grinding"
-        style="@style/ByteShareButton"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/button_chunky"
-        android:backgroundTint="@color/primary_ink"
-        android:text="Keep Grinding 🚀"
-        android:textColor="@color/white" />
-
-    <!-- Remove Friend / Action Button -->
-    <Button
-        android:id="@+id/btn_remove_friend"
-        style="@style/ByteShareButton"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/button_chunky"
-        android:backgroundTint="@color/white"
-        android:text="👤 Remove friend"
-        android:textColor="#D32F2F"
-        android:textSize="14sp" />
 
 </LinearLayout>

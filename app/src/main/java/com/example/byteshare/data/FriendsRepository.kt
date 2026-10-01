@@ -9,19 +9,11 @@ import androidx.core.content.ContextCompat
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Discovers ByteShare users: device contacts matched via emailIndex + members of the user's crews + demo friends.
+ * Discovers ByteShare users from Firebase: device contacts matched via emailIndex + members of the user's crews.
  */
 object FriendsRepository {
 
     private const val TAG = "FriendsRepository"
-
-    private val defaultDemoFriends = listOf(
-        FriendEntry("u_tejesh", "Tejesh Shigwan", 3157.0, 5088.0, 1740.0, 60.0, 1300.0, 57.0, true),
-        FriendEntry("u_ankita", "Ankita Jadhav", 2417.0, 4425.0, 1980.0, 60.0, 377.0, 0.0, true),
-        FriendEntry("u_priya", "Priya", 1820.0, 3120.0, 1200.0, 120.0, 500.0, 0.0, true),
-        FriendEntry("u_arjun", "Arjun", 1540.0, 2800.0, 900.0, 180.0, 460.0, 0.0, true),
-        FriendEntry("u_rahul", "Rahul", 376.0, 567.0, 180.0, 60.0, 136.0, 0.0, true)
-    )
 
     fun hasContactsPermission(context: Context): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) ==
@@ -49,21 +41,20 @@ object FriendsRepository {
     }
 
     /**
-     * Discovers friends = (contacts registered on ByteShare) + (members of my crews) + (demo friends).
+     * Discovers friends = (contacts registered on ByteShare) + (members of my crews).
      */
     fun discoverFriends(context: Context, onResult: (List<FriendEntry>) -> Unit) {
-        val myUid = AuthRepository.currentUserId
+        val myUid = AuthRepository.currentUserId ?: run {
+            onResult(emptyList())
+            return
+        }
 
         val discovered = mutableSetOf<String>()
         val emails = getContactEmails(context)
 
         if (emails.isEmpty()) {
-            if (myUid != null) {
-                collectCrewMemberUids(myUid, discovered) { uids ->
-                    fetchEntries(uids, onResult)
-                }
-            } else {
-                onResult(defaultDemoFriends)
+            collectCrewMemberUids(myUid, discovered) { uids ->
+                fetchEntries(uids, onResult)
             }
             return
         }
@@ -75,12 +66,8 @@ object FriendsRepository {
                 if (uid != null && uid != myUid) synchronized(fromContacts) { fromContacts.add(uid) }
                 if (pendingEmails.decrementAndGet() == 0) {
                     discovered.addAll(fromContacts)
-                    if (myUid != null) {
-                        collectCrewMemberUids(myUid, discovered) { uids ->
-                            fetchEntries(uids, onResult)
-                        }
-                    } else {
-                        onResult(defaultDemoFriends)
+                    collectCrewMemberUids(myUid, discovered) { uids ->
+                        fetchEntries(uids, onResult)
                     }
                 }
             }
@@ -104,7 +91,7 @@ object FriendsRepository {
 
     private fun fetchEntries(uids: Set<String>, onResult: (List<FriendEntry>) -> Unit) {
         if (uids.isEmpty()) {
-            onResult(defaultDemoFriends)
+            onResult(emptyList())
             return
         }
         val entries = mutableListOf<FriendEntry>()
@@ -113,8 +100,7 @@ object FriendsRepository {
             UserRepository.fetchFriendEntry(uid) { entry ->
                 synchronized(entries) { entry?.let { entries.add(it) } }
                 if (pending.decrementAndGet() == 0) {
-                    val combined = (entries + defaultDemoFriends).distinctBy { it.uid }
-                    onResult(combined.sortedBy { it.weightedMinutes })
+                    onResult(entries.distinctBy { it.uid }.sortedBy { it.weightedMinutes })
                 }
             }
         }
