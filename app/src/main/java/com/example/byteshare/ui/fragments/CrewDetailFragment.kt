@@ -217,11 +217,21 @@ class CrewDetailFragment : Fragment() {
             val name = if (isYou) "You" else entry.name
 
             val rowView = layoutInflater.inflate(R.layout.item_member_split, container, false)
+            val hasPaid = crew.paidMembers[entry.uid] == true
+            
             rowView.findViewById<TextView>(R.id.txt_member_avatar).text =
                 name.firstOrNull()?.uppercase() ?: "?"
             rowView.findViewById<TextView>(R.id.txt_member_name).text = name
             rowView.findViewById<TextView>(R.id.txt_member_mult).text = String.format("%.2f", mult)
-            rowView.findViewById<TextView>(R.id.txt_member_pays).text = formatMoney(paysMinor)
+            
+            val txtPays = rowView.findViewById<TextView>(R.id.txt_member_pays)
+            if (hasPaid) {
+                txtPays.text = "Paid"
+                txtPays.setTextColor(Color.parseColor("#4CAF50")) // Green
+            } else {
+                txtPays.text = formatMoney(paysMinor)
+                txtPays.setTextColor(Color.parseColor("#1A1A1A")) // Default
+            }
 
             if (isYou) {
                 populateWhyYouPaySection(view, entry)
@@ -242,8 +252,7 @@ class CrewDetailFragment : Fragment() {
                 payableAmountMinor = paysMinor
                 payableMultiplier = mult
                 
-                val prefs = requireContext().getSharedPreferences("ByteSharePrefs", android.content.Context.MODE_PRIVATE)
-                val hasPaid = prefs.getBoolean("crew_paid_${crew.id}", false)
+                // Note: hasPaid is already defined above for the row.
                 
                 view.findViewById<Button>(R.id.btn_pay_stripe)?.apply {
                     if (hasPaid) {
