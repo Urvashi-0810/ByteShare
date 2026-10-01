@@ -23,8 +23,6 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
 
     private lateinit var paymentSheet: PaymentSheet
 
-    private lateinit var paymentSheet: PaymentSheet
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crewName = arguments?.getString(ARG_CREW_NAME) ?: "Sda 🍕"
@@ -32,7 +30,7 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
         oweAmountMinor = arguments?.getLong(ARG_OWE_AMOUNT) ?: 60000L
         multiplier = arguments?.getDouble(ARG_MULTIPLIER) ?: 1.0
 
-        paymentSheet = StripeManager.initPaymentSheet(this) { result ->
+        paymentSheet = PaymentSheet(this) { result ->
             handlePaymentResult(result)
         }
     }
@@ -47,11 +45,6 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Instantiate PaymentSheet directly in onViewCreated as required by Stripe lifecycle
-        paymentSheet = PaymentSheet(this) { result ->
-            handlePaymentResult(result)
-        }
 
         view.findViewById<TextView>(R.id.txt_stripe_crew_name)?.text = crewName
         val oweAmount = formatMoney(oweAmountMinor)
@@ -91,7 +84,6 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
                         java.util.Locale.US, multiplier
                     )
 
-                // Initialize Stripe configuration
                 PaymentConfiguration.init(requireContext(), payment.publishableKey)
 
                 try {
