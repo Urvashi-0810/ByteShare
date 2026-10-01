@@ -9,20 +9,18 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
+import com.example.byteshare.data.AuthRepository
+import com.example.byteshare.data.FriendEntry
+import com.example.byteshare.data.FriendsRepository
+import com.example.byteshare.data.UsageStatsCollector
 import com.example.byteshare.logic.AdManager
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.example.byteshare.data.FriendEntry
-import com.example.byteshare.data.FriendsRepository
-import com.example.byteshare.data.UserRepository
 
 class FriendsFragment : Fragment() {
 
@@ -40,15 +38,104 @@ class FriendsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Contact Permission & Invite Buttons
+        view.findViewById<Button>(R.id.btn_allow_contacts)?.setOnClickListener {
+            requestContacts.launch(Manifest.permission.READ_CONTACTS)
+        }
+        view.findViewById<ImageView>(R.id.btn_invite_friend)?.setOnClickListener {
+            shareAppInvite()
+        }
+
+        bindPermissionCard(view)
+        loadLeaderboard(view)
+
         // Load AdMob Native Ad
         val adContainer = view.findViewById<FrameLayout>(R.id.native_ad_container)
         if (adContainer != null) {
             AdManager.loadNativeAd(requireContext()) { nativeAd ->
-                val adView = layoutInflater.inflate(R.layout.item_native_ad, adContainer, false) as NativeAdView
-                populateNativeAdView(nativeAd, adView)
-                adContainer.removeAllViews()
-                adContainer.addView(adView)
+                if (isAdded) {
+                    val adView = layoutInflater.inflate(R.layout.item_native_ad, adContainer, false) as NativeAdView
+                    populateNativeAdView(nativeAd, adView)
+                    adContainer.removeAllViews()
+                    adContainer.addView(adView)
+                }
             }
+        }
+    }
+
+    private fun bindPermissionCard(view: View) {
+        val granted = FriendsRepository.hasContactsPermission(requireContext())
+        view.findViewById<View>(R.id.contacts_permission_card)?.visibility =
+            if (granted) View.GONE else View.VISIBLE
+    }
+
+    private fun loadLeaderboard(view: View) {
+        FriendsRepository.discoverFriends(requireContext()) { friends ->
+            if (isAdded) renderLeaderboard(view, friends)
+        }
+    }
+
+    private fun renderLeaderboard(view: View, friends: List<FriendEntry>) {
+        val container = view.findViewById<LinearLayout>(R.id.leaderboard_container) ?: return
+        val empty = view.findViewById<TextView>(R.id.txt_leaderboard_empty)
+        container.removeAllViews()
+
+        // Include self so user sees their own rank
+        val self = AuthRepository.currentUser
+        val selfEntry = if (self != null) {
+            val usage = UsageStatsCollector.collectTodayUsage(requireContext())
+            val weighted = usage.sumOf {
+                it.minutes * when (it.category) {
+                    "social" -> 2.0; "stream" -> 1.5; "productive" -> 0.5; else -> 1.0
+                }
+            }
+            FriendEntry(
+                uid = self.uid,
+                name = "You",
+                rawMinutes = usage.sumOf { it.minutes },
+                weightedMinutes = weighted
+            )
+        } else null
+
+        val ranked = (friends + listOfNotNull(selfEntry))
+            .distinctBy { it.uid }
+            .sortedBy { it.weightedMinutes } // Lower weighted minutes wins top rank
+
+        empty?.visibility = if (ranked.isEmpty()) View.VISIBLE else View.GONE
+
+        val rankColors = intArrayOf(R.color.rank_1, R.color.rank_2, R.color.rank_3)
+        val avatars = listOf("🐼", "🦄", "🐯", "🦊", "🐶", "🦋")
+
+        ranked.forEachIndexed { index, entry ->
+            val item = layoutInflater.inflate(R.layout.item_leaderboard, container, false)
+            val avatar = avatars.getOrElse(index % avatars.size) { "👤" }
+
+            item.findViewById<TextView>(R.id.txt_rank_number).text = (index + 1).toString()
+            item.findViewById<TextView>(R.id.txt_friend_name).text = entry.name
+            
+            // Show Today's screen time
+            val todayMins = entry.rawMinutes.toInt()
+            item.findViewById<TextView>(R.id.txt_friend_today_time).text = "${todayMins}m today"
+            item.findViewById<TextView>(R.id.txt_friend_weighted).text = "${entry.weightedMinutes.toInt()}m"
+            
+            val rankLabel = item.findViewById<TextView>(R.id.txt_friend_rank)
+            rankLabel.text = "RANK ${index + 1}"
+            rankLabel.setTextColor(
+                requireContext().getColor(rankColors.getOrElse(index) { R.color.gray_ink })
+            )
+
+            // Click listener on name/card opens Friend Profile Overlay!
+            item.setOnClickListener {
+                FriendProfileDialogFragment.show(
+                    fragmentManager = parentFragmentManager,
+                    name = entry.name,
+                    avatar = avatar,
+                    rawMinutes = todayMins,
+                    isSelf = (entry.name == "You")
+                )
+            }
+
+            container.addView(item)
         }
     }
 
@@ -70,79 +157,6 @@ class FriendsFragment : Fragment() {
         }
 
         adView.setNativeAd(nativeAd)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        view.findViewById<Button>(R.id.btn_allow_contacts).setOnClickListener {
-            requestContacts.launch(Manifest.permission.READ_CONTACTS)
-        }
-        view.findViewById<ImageView>(R.id.btn_invite_friend).setOnClickListener {
-            shareAppInvite()
-        }
-
-        bindPermissionCard(view)
-        loadLeaderboard(view)
-    }
-
-    private fun bindPermissionCard(view: View) {
-        val granted = FriendsRepository.hasContactsPermission(requireContext())
-        view.findViewById<View>(R.id.contacts_permission_card).visibility =
-            if (granted) View.GONE else View.VISIBLE
-    }
-
-    private fun loadLeaderboard(view: View) {
-        FriendsRepository.discoverFriends(requireContext()) { friends ->
-            if (isAdded) renderLeaderboard(view, friends)
-        }
-    }
-
-    private fun renderLeaderboard(view: View, friends: List<FriendEntry>) {
-        val container = view.findViewById<LinearLayout>(R.id.leaderboard_container)
-        val empty = view.findViewById<TextView>(R.id.txt_leaderboard_empty)
-        container.removeAllViews()
-
-        // Include self so the user sees their own rank
-        val self = com.example.byteshare.data.AuthRepository.currentUser
-        val selfEntry = if (self != null) {
-            val usage = com.example.byteshare.data.UsageStatsCollector
-                .collectTodayUsage(requireContext())
-            val weighted = usage.sumOf {
-                it.minutes * when (it.category) {
-                    "social" -> 2.0; "stream" -> 1.5; "productive" -> 0.5; else -> 1.0
-                }
-            }
-            FriendEntry(
-                uid = self.uid,
-                name = "You",
-                rawMinutes = usage.sumOf { it.minutes },
-                weightedMinutes = weighted
-            )
-        } else null
-
-        val ranked = (friends + listOfNotNull(selfEntry))
-            .distinctBy { it.uid }
-            .sortedByDescending { it.weightedMinutes }
-
-        empty.visibility = if (ranked.size <= 1) View.VISIBLE else View.GONE
-
-        val rankColors = intArrayOf(R.color.rank_1, R.color.rank_2, R.color.rank_3)
-        ranked.forEachIndexed { index, entry ->
-            val item = layoutInflater.inflate(R.layout.item_leaderboard, container, false)
-            item.findViewById<TextView>(R.id.txt_rank_number).text = (index + 1).toString()
-            item.findViewById<TextView>(R.id.txt_friend_name).text = entry.name
-            item.findViewById<TextView>(R.id.txt_friend_raw).text =
-                "${entry.rawMinutes.toInt()}m raw usage"
-            item.findViewById<TextView>(R.id.txt_friend_weighted).text =
-                "${entry.weightedMinutes.toInt()}m"
-            val rankLabel = item.findViewById<TextView>(R.id.txt_friend_rank)
-            rankLabel.text = "RANK ${index + 1}"
-            rankLabel.setTextColor(
-                requireContext().getColor(rankColors.getOrElse(index) { R.color.gray_ink })
-            )
-            container.addView(item)
-        }
     }
 
     private fun shareAppInvite() {

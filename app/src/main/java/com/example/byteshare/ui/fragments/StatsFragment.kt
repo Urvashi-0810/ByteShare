@@ -39,7 +39,7 @@ class StatsFragment : Fragment() {
         }
 
         // Load AdMob Banner Ad
-        val adView = view.findViewById<AdView>(R.id.ad_view_stats)
+        val adView = view?.findViewById<AdView>(R.id.ad_view_stats)
         val adRequest = AdRequest.Builder().build()
         adView?.loadAd(adRequest)
     }

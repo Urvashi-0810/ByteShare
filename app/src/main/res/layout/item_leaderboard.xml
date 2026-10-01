@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/ByteShareCard"
+    android:id="@+id/card_friend_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="0dp">
+    android:layout_marginHorizontal="0dp"
+    android:layout_marginBottom="12dp"
+    android:padding="16dp">
 
     <FrameLayout
         android:id="@+id/avatar_container"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:background="@drawable/button_chunky">
+        android:background="@drawable/button_chunky"
+        android:backgroundTint="@color/accent_lime">
 
         <TextView
             android:id="@+id/txt_rank_number"
@@ -21,14 +25,14 @@
             android:fontFamily="sans-serif-black"
             android:text="1"
             android:textColor="@color/primary_ink"
-            android:textSize="24sp" />
+            android:textSize="22sp" />
     </FrameLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:layout_toEndOf="@id/avatar_container"
         android:orientation="vertical">
 
@@ -39,13 +43,15 @@
             android:fontFamily="sans-serif-bold"
             android:text="Name"
             android:textColor="@color/primary_ink"
-            android:textSize="18sp" />
+            android:textSize="17sp" />
 
         <TextView
-            android:id="@+id/txt_friend_raw"
+            android:id="@+id/txt_friend_today_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0m raw usage"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="0m today"
             android:textColor="@color/gray_ink"
             android:textSize="12sp" />
     </LinearLayout>
@@ -65,7 +71,7 @@
             android:fontFamily="sans-serif-black"
             android:text="0m"
             android:textColor="@color/primary_ink"
-            android:textSize="20sp" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/txt_friend_rank"
@@ -76,4 +82,5 @@
             android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>
+
 </RelativeLayout>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_chunky"
+    android:backgroundTint="@color/bg_cream"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Handle Bar & Close Button -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_centerInParent="true"
+            android:background="#D1D1D6" />
+
+        <ImageView
+            android:id="@+id/btn_close_profile"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@color/white"
+            android:padding="6dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@color/primary_ink" />
+    </RelativeLayout>
+
+    <!-- Avatar Frame -->
+    <FrameLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/button_chunky"
+        android:backgroundTint="@color/accent_lime">
+
+        <TextView
+            android:id="@+id/txt_profile_avatar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="🐼"
+            android:textSize="40sp" />
+    </FrameLayout>
+
+    <!-- Name & Email -->
+    <TextView
+        android:id="@+id/txt_profile_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="sans-serif-black"
+        android:text="Rahul"
+        android:textColor="@color/primary_ink"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/txt_profile_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="rahul@demo.app"
+        android:textColor="@color/gray_ink"
+        android:textSize="12sp" />
+
+    <!-- Streak Badge -->
+    <TextView
+        android:id="@+id/badge_profile_streak"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/button_chunky"
+        android:backgroundTint="#FF8A65"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="6dp"
+        android:text="🔥 5 Day Streak"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Bio / Quote Card -->
+    <LinearLayout
+        style="@style/ByteShareCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#EBFBCC"
+        android:gravity="center"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/txt_profile_bio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="&quot;Trying to stay away from the scroll! 🧘&quot;"
+            android:textColor="@color/primary_ink"
+            android:textSize="13sp"
+            android:textStyle="italic" />
+    </LinearLayout>
+
+    <!-- Daily Stats Cards Row (AVG DAILY & FOCUS SCORE) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <!-- AVG DAILY -->
+        <LinearLayout
+            style="@style/ByteShareCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_marginHorizontal="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:text="AVG DAILY"
+                android:textColor="@color/gray_ink"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/txt_profile_avg_daily"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans-serif-black"
+                android:text="38m"
+                android:textColor="@color/primary_ink"
+                android:textSize="22sp" />
+        </LinearLayout>
+
+        <!-- FOCUS SCORE -->
+        <LinearLayout
+            style="@style/ByteShareCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginHorizontal="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:text="FOCUS SCORE"
+                android:textColor="@color/gray_ink"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/txt_profile_focus_score"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans-serif-black"
+                android:text="84"
+                android:textColor="#F24E1E"
+                android:textSize="22sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- DIGITAL FOOTPRINT CARD -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginTop="20dp"
+        android:fontFamily="sans-serif-black"
+        android:text="DIGITAL FOOTPRINT"
+        android:textColor="@color/gray_ink"
+        android:textSize="11sp" />
+
+    <!-- Favorite App Card -->
+    <RelativeLayout
+        style="@style/ByteShareCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="8dp"
+        android:padding="14dp">
+
+        <FrameLayout
+            android:id="@+id/app_icon_frame"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@color/accent_lime">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="📱"
+                android:textSize="20sp" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_toEndOf="@id/app_icon_frame"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:text="FAVORITE APP"
+                android:textColor="@color/gray_ink"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/txt_profile_fav_app"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="WhatsApp"
+                android:textColor="@color/primary_ink"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_profile_fav_app_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-black"
+            android:text="79m"
+            android:textColor="@color/primary_ink"
+            android:textSize="16sp" />
+    </RelativeLayout>
+
+    <!-- Weekly Total Card -->
+    <RelativeLayout
+        style="@style/ByteShareCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="8dp"
+        android:padding="14dp">
+
+        <FrameLayout
+            android:id="@+id/weekly_icon_frame"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@color/white">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="📅"
+                android:textSize="20sp" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_toEndOf="@id/weekly_icon_frame"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-bold"
+                android:text="WEEKLY TOTAL"
+                android:textColor="@color/gray_ink"
+                android:textSize="10sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="Last 7 days"
+                android:textColor="@color/primary_ink"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_profile_weekly_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif-black"
+            android:text="263m"
+            android:textColor="#F24E1E"
+            android:textSize="16sp" />
+    </RelativeLayout>
+
+    <!-- Keep Grinding Button -->
+    <Button
+        android:id="@+id/btn_keep_grinding"
+        style="@style/ByteShareButton"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/button_chunky"
+        android:backgroundTint="@color/primary_ink"
+        android:text="Keep Grinding 🚀"
+        android:textColor="@color/white" />
+
+    <!-- Remove Friend / Action Button -->
+    <Button
+        android:id="@+id/btn_remove_friend"
+        style="@style/ByteShareButton"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_chunky"
+        android:backgroundTint="@color/white"
+        android:text="👤 Remove friend"
+        android:textColor="#D32F2F"
+        android:textSize="14sp" />
+
+</LinearLayout>

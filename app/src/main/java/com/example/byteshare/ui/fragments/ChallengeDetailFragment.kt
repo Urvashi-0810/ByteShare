@@ -81,7 +81,7 @@ class ChallengeDetailFragment : Fragment() {
                 btnAccept.text = "Challenge Accepted! ✓"
                 btnAccept.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.accent_lime)
                 btnAccept.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_ink))
-                Toast.makeText(requireContext(), "Accepted '${challenge.title}'!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Accepted '${def.title}'!", Toast.LENGTH_SHORT).show()
             } else {
                 btnAccept.text = "Accept Challenge"
                 btnAccept.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.primary_ink)
