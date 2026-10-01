@@ -310,7 +310,7 @@ ByteShare attempts to turn passive screen-time awareness into an active social a
 ---
 
 ## 🎥 Video / Demo
-*Demo video coming soon.*
+*https://youtu.be/B5pr0lFGqRw*
 
 ---
 
