@@ -358,6 +358,10 @@ Project Documentation (Notion) →
 <img src="Screenshots/WhatsApp%20Image%202026-10-01%20at%2011.40.55%20PM%20(4).jpeg" alt="User Profile" width="300" />
 <br>
 
+<h3>Video Add Revenue</h3>
+<img src="Screenshots/WhatsApp%20Image%202026-10-01%20at%2011.40.55%20PM%20(5).jpeg" alt="User Profile" width="300" />
+<br>
+
 </div>
 
 
