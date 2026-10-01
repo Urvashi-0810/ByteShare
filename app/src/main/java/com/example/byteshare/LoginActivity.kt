@@ -22,10 +22,12 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         val btnSignIn = findViewById<Button>(R.id.btn_google_sign_in)
+        val btnGuest = findViewById<Button>(R.id.btn_guest_sign_in)
         val progress = findViewById<ProgressBar>(R.id.login_progress)
 
-        btnSignIn.setOnClickListener {
+        btnSignIn?.setOnClickListener {
             btnSignIn.isEnabled = false
+            btnGuest?.isEnabled = false
             progress.visibility = View.VISIBLE
 
             AuthRepository.signInWithGoogle(this) { user, error ->
@@ -33,8 +35,26 @@ class LoginActivity : AppCompatActivity() {
                     goToMain()
                 } else {
                     btnSignIn.isEnabled = true
+                    btnGuest?.isEnabled = true
                     progress.visibility = View.GONE
-                    Toast.makeText(this, error ?: "Sign-in failed", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, error ?: "Sign-in failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        btnGuest?.setOnClickListener {
+            btnSignIn?.isEnabled = false
+            btnGuest.isEnabled = false
+            progress.visibility = View.VISIBLE
+
+            AuthRepository.signInAnonymously(this) { user, error ->
+                if (user != null) {
+                    goToMain()
+                } else {
+                    btnSignIn?.isEnabled = true
+                    btnGuest.isEnabled = true
+                    progress.visibility = View.GONE
+                    Toast.makeText(this, error ?: "Guest sign-in failed", Toast.LENGTH_SHORT).show()
                 }
             }
         }

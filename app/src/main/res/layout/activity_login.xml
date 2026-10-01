@@ -82,6 +82,20 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
+        <Button
+            android:id="@+id/btn_guest_sign_in"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@null"
+            android:paddingVertical="14dp"
+            android:text="Continue as Guest 👤"
+            android:textAllCaps="false"
+            android:textColor="@color/primary_ink"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
         <ProgressBar
             android:id="@+id/login_progress"
             android:layout_width="wrap_content"
