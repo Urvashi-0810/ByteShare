@@ -23,12 +23,18 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
 
     private lateinit var paymentSheet: PaymentSheet
 
+    private lateinit var paymentSheet: PaymentSheet
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crewName = arguments?.getString(ARG_CREW_NAME) ?: "Sda 🍕"
         crewId = arguments?.getString(ARG_CREW_ID).orEmpty()
         oweAmountMinor = arguments?.getLong(ARG_OWE_AMOUNT) ?: 60000L
         multiplier = arguments?.getDouble(ARG_MULTIPLIER) ?: 1.0
+
+        paymentSheet = StripeManager.initPaymentSheet(this) { result ->
+            handlePaymentResult(result)
+        }
     }
 
     override fun onCreateView(

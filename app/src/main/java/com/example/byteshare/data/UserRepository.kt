@@ -50,14 +50,13 @@ object UserRepository {
         val uid = user.uid
 
         try {
-            val profile = mapOf(
-                "displayName" to (user.displayName ?: "Anonymous"),
-                "email" to (user.email ?: ""),
-                "photoUrl" to (user.photoUrl?.toString() ?: ""),
-                "updatedAt" to System.currentTimeMillis()
+            // Per-field paths so xp/streak stored under users/{uid} aren't overwritten.
+            val updates = mutableMapOf<String, Any>(
+                "/users/$uid/displayName" to (user.displayName ?: "Anonymous"),
+                "/users/$uid/email" to (user.email ?: ""),
+                "/users/$uid/photoUrl" to (user.photoUrl?.toString() ?: ""),
+                "/users/$uid/updatedAt" to System.currentTimeMillis()
             )
-
-            val updates = mutableMapOf<String, Any>("/users/$uid" to profile)
             user.email?.let { updates["/emailIndex/${encodeEmail(it)}"] = uid }
 
             if (UsageStatsCollector.hasPermission(context)) {
@@ -113,28 +112,32 @@ object UserRepository {
                     onResult(null)
                     return@addOnSuccessListener
                 }
-                rollingUsageRef.child(uid).get()
+                val email = profileSnap.child("email").getValue(String::class.java).orEmpty()
+                val streak = profileSnap.child("streak").getValue(Int::class.java) ?: 0
+                usageRef.child(uid).child(todayKey()).get()
                     .addOnSuccessListener { usageSnap ->
                         fun mins(key: String) =
                             usageSnap.child(key).getValue(Double::class.java) ?: 0.0
                         val weighted = mins("social") * 2.0 + mins("stream") * 1.5 +
                                 mins("neutral") * 1.0 + mins("productive") * 0.5
-                        val windowEnd = usageSnap.child("windowEnd")
+                        val updatedAt = usageSnap.child("updatedAt")
                             .getValue(Long::class.java) ?: 0L
-                        val scoreAge = System.currentTimeMillis() - windowEnd
+                        val scoreAge = System.currentTimeMillis() - updatedAt
                         onResult(
                             FriendEntry(
                                 uid = uid,
                                 name = name,
+                                email = email,
+                                streak = streak,
                                 rawMinutes = mins("raw"),
                                 weightedMinutes = weighted,
                                 socialMinutes = mins("social"),
                                 streamMinutes = mins("stream"),
                                 neutralMinutes = mins("neutral"),
                                 productiveMinutes = mins("productive"),
-                                usageAvailable = usageSnap.exists() && windowEnd > 0L &&
+                                usageAvailable = usageSnap.exists() && updatedAt > 0L &&
                                     scoreAge in 0..MAX_SCORE_AGE_MS,
-                                usageWindowEnd = windowEnd
+                                usageWindowEnd = updatedAt
                             )
                         )
                     }
@@ -143,6 +146,8 @@ object UserRepository {
                             FriendEntry(
                                 uid = uid,
                                 name = name,
+                                email = email,
+                                streak = streak,
                                 rawMinutes = 0.0,
                                 weightedMinutes = 0.0,
                                 usageAvailable = false,
@@ -253,5 +258,7 @@ data class FriendEntry(
     val neutralMinutes: Double = 0.0,
     val productiveMinutes: Double = 0.0,
     val usageAvailable: Boolean = true,
-    val usageWindowEnd: Long = 0L
+    val usageWindowEnd: Long = 0L,
+    val email: String = "",
+    val streak: Int = 0
 )

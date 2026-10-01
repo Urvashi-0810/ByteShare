@@ -65,12 +65,13 @@ class MeFragment : Fragment() {
         val badgeXp = view.findViewById<TextView>(R.id.badge_user_xp)
         val btnEarnXp = view.findViewById<Button>(R.id.btn_earn_xp_ad)
 
-        // Initial UI display
-        val currentXp = XpRepository.getXp()
-        val currentStreak = XpRepository.getStreak()
-        val currentLevel = XpRepository.getLevel(currentXp)
-        badgeStreak?.text = "🔥 $currentStreak Day Streak"
-        badgeXp?.text = "⭐️ $currentXp XP (Level $currentLevel)"
+        // Seed UI from Firebase, then attach real-time listener
+        XpRepository.fetchOnce { xp, streak, level ->
+            if (isAdded) {
+                badgeStreak?.text = "🔥 $streak Day Streak"
+                badgeXp?.text = "⭐️ $xp XP (Level $level)"
+            }
+        }
 
         // Listen for real-time Firebase XP updates
         xpListener = XpRepository.listenForXp { xp, streak, level ->
@@ -94,14 +95,8 @@ class MeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Clean up listener
-        xpListener?.let {
-            val uid = AuthRepository.currentUserId
-            if (uid != null) {
-                com.google.firebase.database.FirebaseDatabase.getInstance("https://test-e06f1-default-rtdb.firebaseio.com")
-                    .getReference("users").child(uid).removeEventListener(it)
-            }
-        }
+        // Clean up listener via repository helper
+        xpListener?.let { XpRepository.removeListener(it) }
         xpListener = null
     }
 
@@ -121,6 +116,8 @@ class MeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Record daily activity to maintain streak
+        XpRepository.recordDailyActivity()
         view?.let { v ->
             val granted = UsageStatsCollector.hasPermission(requireContext())
             v.findViewById<View>(R.id.usage_permission_card)?.visibility =

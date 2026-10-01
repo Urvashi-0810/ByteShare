@@ -235,6 +235,7 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/button_chunky_ink"
         android:backgroundTint="@null"
+        app:backgroundTint="@null"
         android:text="Unlock ByteShare Pro ($2.99/mo)"
         android:textColor="@color/accent_lime"
         android:textSize="15sp"
