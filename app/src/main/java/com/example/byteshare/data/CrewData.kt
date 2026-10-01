@@ -9,5 +9,7 @@ data class Crew(
     val oweAmount: Double,
     val inviteCode: String,
     val createdBy: String = "",
-    val members: Map<String, Boolean> = emptyMap()
+    val members: Map<String, Boolean> = emptyMap(),
+    val multiplierReductions: Map<String, Double> = emptyMap(),
+    val baselineMultipliers: Map<String, Double> = emptyMap()
 )

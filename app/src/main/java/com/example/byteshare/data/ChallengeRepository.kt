@@ -25,7 +25,8 @@ data class ChallengeDef(
     val type: String,            // "category_limit" | "phone_free" | "streak"
     val targetCategory: String,  // category to restrict ("social", "stream", "" = all)
     val limitMinutes: Double,    // max allowed minutes in the window
-    val durationHours: Int       // tracking window length from start
+    val durationHours: Int,      // tracking window length from start
+    val multiplierReduction: Double
 )
 
 data class ChallengeProgress(
@@ -119,8 +120,10 @@ object ChallengeRepository {
     ) {
         val uid = AuthRepository.currentUserId ?: return onResult(emptyMap())
         fetchMyProgress { progressMap ->
-            val usage = if (UsageStatsCollector.hasPermission(context))
-                UsageStatsCollector.collectTodayUsage(context) else emptyList()
+            if (!UsageStatsCollector.hasPermission(context)) {
+                onResult(progressMap)
+                return@fetchMyProgress
+            }
             val updates = mutableMapOf<String, Any>()
             val now = System.currentTimeMillis()
             val result = progressMap.toMutableMap()
@@ -129,14 +132,15 @@ object ChallengeRepository {
                 if (progress.state != ChallengeState.ACTIVE) continue
                 val def = defs.find { it.id == id } ?: continue
 
-                val minutesUsed = when (def.type) {
-                    "phone_free" -> usage.sumOf { it.minutes }
-                    else -> usage.filter {
-                        def.targetCategory.isEmpty() || it.category == def.targetCategory
-                    }.sumOf { it.minutes }
-                }
-
                 val windowEnd = progress.startedAt + def.durationHours * 3_600_000L
+                val usage = UsageStatsCollector.collectUsageForWindow(
+                    context, progress.startedAt, minOf(now, windowEnd)
+                )
+                val minutesUsed = usage.filter {
+                    def.type == "phone_free" || def.targetCategory.isEmpty() ||
+                            it.category == def.targetCategory
+                }.sumOf { it.minutes }
+
                 val newState = when {
                     minutesUsed > def.limitMinutes -> ChallengeState.FAILED
                     now >= windowEnd -> ChallengeState.COMPLETED
@@ -153,6 +157,17 @@ object ChallengeRepository {
 
             if (updates.isNotEmpty()) {
                 progressRef.updateChildren(updates)
+                    .addOnSuccessListener {
+                        for ((id, progress) in progressMap) {
+                            if (progress.state == ChallengeState.ACTIVE &&
+                                result[id]?.state == ChallengeState.COMPLETED) {
+                                val reduction = defs.find { it.id == id }?.multiplierReduction ?: 0.0
+                                if (reduction > 0.0) {
+                                    FirebaseCrewRepository.applyChallengeMultiplierReduction(id, reduction)
+                                }
+                            }
+                        }
+                    }
                     .addOnFailureListener { Log.e(TAG, "Progress update failed", it) }
             }
             onResult(result)
@@ -181,7 +196,8 @@ object ChallengeRepository {
             type = str("type"),
             targetCategory = str("targetCategory"),
             limitMinutes = s.child("limitMinutes").getValue(Double::class.java) ?: 0.0,
-            durationHours = s.child("durationHours").getValue(Int::class.java) ?: 24
+            durationHours = s.child("durationHours").getValue(Int::class.java) ?: 24,
+            multiplierReduction = s.child("multiplierReduction").getValue(Double::class.java) ?: 0.0
         )
     }
 

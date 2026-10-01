@@ -9,47 +9,95 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
+import com.example.byteshare.data.AuthRepository
+import com.example.byteshare.data.FriendEntry
+import com.example.byteshare.data.FriendsRepository
+import com.example.byteshare.data.NudgeResult
+import com.example.byteshare.data.ReceivedNudge
+import com.example.byteshare.data.UserRepository
 import com.example.byteshare.logic.AdManager
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.example.byteshare.data.FriendEntry
-import com.example.byteshare.data.FriendsRepository
-import com.example.byteshare.data.UserRepository
+import com.google.firebase.database.ValueEventListener
 
 class FriendsFragment : Fragment() {
 
+    private val nudgesSentToday = mutableMapOf<String, Int>()
+    private var nudgeListener: ValueEventListener? = null
+    private var nudgeListenerUid: String? = null
+    private var nudgeListenerDay: String? = null
+
     private val requestContacts = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        view?.let { bindPermissionCard(it) }
-        if (granted) view?.let { loadLeaderboard(it) }
+    ) { _ ->
+        val currentView = view ?: return@registerForActivityResult
+        bindPermissionCard(currentView)
+        refreshLeaderboard(currentView)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_friends, container, false)
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? = inflater.inflate(R.layout.fragment_friends, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Load AdMob Native Ad
         val adContainer = view.findViewById<FrameLayout>(R.id.native_ad_container)
         if (adContainer != null) {
             AdManager.loadNativeAd(requireContext()) { nativeAd ->
+                if (!isAdded) return@loadNativeAd
                 val adView = layoutInflater.inflate(R.layout.item_native_ad, adContainer, false) as NativeAdView
                 populateNativeAdView(nativeAd, adView)
                 adContainer.removeAllViews()
                 adContainer.addView(adView)
             }
         }
+
+        view.findViewById<Button>(R.id.btn_allow_contacts).setOnClickListener {
+            requestContacts.launch(Manifest.permission.READ_CONTACTS)
+        }
+        view.findViewById<ImageView>(R.id.btn_invite_friend).setOnClickListener {
+            shareAppInvite()
+        }
+
+        bindPermissionCard(view)
+        AuthRepository.currentUserId?.let { uid ->
+            val dayKey = UserRepository.todayKey()
+            nudgeListenerUid = uid
+            nudgeListenerDay = dayKey
+            nudgeListener = UserRepository.listenForReceivedNudges(uid, dayKey) { nudges ->
+                if (isAdded && this.view === view) renderNudgeInbox(view, nudges)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val currentView = view ?: return
+        bindPermissionCard(currentView)
+        refreshLeaderboard(currentView)
+    }
+
+    override fun onDestroyView() {
+        val uid = nudgeListenerUid
+        val dayKey = nudgeListenerDay
+        val listener = nudgeListener
+        if (uid != null && dayKey != null && listener != null) {
+            UserRepository.removeReceivedNudgeListener(uid, dayKey, listener)
+        }
+        nudgeListener = null
+        nudgeListenerUid = null
+        nudgeListenerDay = null
+        super.onDestroyView()
     }
 
     private fun populateNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
@@ -72,20 +120,6 @@ class FriendsFragment : Fragment() {
         adView.setNativeAd(nativeAd)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        view.findViewById<Button>(R.id.btn_allow_contacts).setOnClickListener {
-            requestContacts.launch(Manifest.permission.READ_CONTACTS)
-        }
-        view.findViewById<ImageView>(R.id.btn_invite_friend).setOnClickListener {
-            shareAppInvite()
-        }
-
-        bindPermissionCard(view)
-        loadLeaderboard(view)
-    }
-
     private fun bindPermissionCard(view: View) {
         val granted = FriendsRepository.hasContactsPermission(requireContext())
         view.findViewById<View>(R.id.contacts_permission_card).visibility =
@@ -94,32 +128,36 @@ class FriendsFragment : Fragment() {
 
     private fun loadLeaderboard(view: View) {
         FriendsRepository.discoverFriends(requireContext()) { friends ->
-            if (isAdded) renderLeaderboard(view, friends)
+            if (!isAdded) return@discoverFriends
+            val selfUid = AuthRepository.currentUserId
+            if (selfUid == null) {
+                renderLeaderboard(view, friends, null)
+            } else {
+                UserRepository.fetchFriendEntry(selfUid) { self ->
+                    if (isAdded) renderLeaderboard(view, friends, self?.copy(name = "You"))
+                }
+            }
         }
     }
 
-    private fun renderLeaderboard(view: View, friends: List<FriendEntry>) {
+    private fun refreshLeaderboard(view: View) {
+        UserRepository.syncProfileAndUsage(requireContext()) { success ->
+            if (!isAdded || this.view !== view) return@syncProfileAndUsage
+            if (!success) {
+                Toast.makeText(
+                    requireContext(),
+                    "Usage sync failed. Check your connection and Firebase rules.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            loadLeaderboard(view)
+        }
+    }
+
+    private fun renderLeaderboard(view: View, friends: List<FriendEntry>, selfEntry: FriendEntry?) {
         val container = view.findViewById<LinearLayout>(R.id.leaderboard_container)
         val empty = view.findViewById<TextView>(R.id.txt_leaderboard_empty)
         container.removeAllViews()
-
-        // Include self so the user sees their own rank
-        val self = com.example.byteshare.data.AuthRepository.currentUser
-        val selfEntry = if (self != null) {
-            val usage = com.example.byteshare.data.UsageStatsCollector
-                .collectTodayUsage(requireContext())
-            val weighted = usage.sumOf {
-                it.minutes * when (it.category) {
-                    "social" -> 2.0; "stream" -> 1.5; "productive" -> 0.5; else -> 1.0
-                }
-            }
-            FriendEntry(
-                uid = self.uid,
-                name = "You",
-                rawMinutes = usage.sumOf { it.minutes },
-                weightedMinutes = weighted
-            )
-        } else null
 
         val ranked = (friends + listOfNotNull(selfEntry))
             .distinctBy { it.uid }
@@ -128,12 +166,21 @@ class FriendsFragment : Fragment() {
         empty.visibility = if (ranked.size <= 1) View.VISIBLE else View.GONE
 
         val rankColors = intArrayOf(R.color.rank_1, R.color.rank_2, R.color.rank_3)
+        val currentUid = AuthRepository.currentUserId
         ranked.forEachIndexed { index, entry ->
             val item = layoutInflater.inflate(R.layout.item_leaderboard, container, false)
             item.findViewById<TextView>(R.id.txt_rank_number).text = (index + 1).toString()
             item.findViewById<TextView>(R.id.txt_friend_name).text = entry.name
-            item.findViewById<TextView>(R.id.txt_friend_raw).text =
-                "${entry.rawMinutes.toInt()}m raw usage"
+            item.findViewById<TextView>(R.id.txt_friend_raw).text = if (entry.usageAvailable) {
+                "${formatMinutes(entry.rawMinutes)} screen time"
+            } else {
+                "Screen-time data unavailable"
+            }
+            item.findViewById<TextView>(R.id.txt_friend_breakdown).text = if (entry.usageAvailable) {
+                "Social ${formatMinutes(entry.socialMinutes)} · Productive ${formatMinutes(entry.productiveMinutes)}"
+            } else {
+                "No screen-time data shared"
+            }
             item.findViewById<TextView>(R.id.txt_friend_weighted).text =
                 "${entry.weightedMinutes.toInt()}m"
             val rankLabel = item.findViewById<TextView>(R.id.txt_friend_rank)
@@ -141,8 +188,79 @@ class FriendsFragment : Fragment() {
             rankLabel.setTextColor(
                 requireContext().getColor(rankColors.getOrElse(index) { R.color.gray_ink })
             )
+
+            val nudgeButton = item.findViewById<Button>(R.id.btn_nudge_friend)
+            if (currentUid == entry.uid || currentUid == null) {
+                nudgeButton.visibility = View.GONE
+            } else {
+                val quotaKey = "${UserRepository.todayKey()}:${entry.uid}"
+                val sentCount = nudgesSentToday[quotaKey] ?: 0
+                nudgeButton.text = if (sentCount == 0) "SEND NUDGE" else "NUDGE $sentCount/2"
+                nudgeButton.isEnabled = sentCount < 2
+                nudgeButton.setOnClickListener { showNudgeOptions(entry, nudgeButton, quotaKey) }
+            }
             container.addView(item)
         }
+    }
+
+    private fun renderNudgeInbox(view: View, nudges: List<ReceivedNudge>) {
+        val card = view.findViewById<View>(R.id.nudge_inbox_card)
+        val messages = view.findViewById<LinearLayout>(R.id.nudge_inbox_messages)
+        messages.removeAllViews()
+        nudges.forEach { nudge ->
+            val message = TextView(requireContext()).apply {
+                text = "${nudge.senderName}: ${nudge.message}"
+                setTextColor(requireContext().getColor(R.color.primary_ink))
+                textSize = 14f
+                setPadding(0, 4, 0, 4)
+            }
+            messages.addView(message)
+        }
+        card.visibility = if (nudges.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun showNudgeOptions(entry: FriendEntry, button: Button, quotaKey: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Nudge ${entry.name}")
+            .setItems(NUDGE_MESSAGES) { _, which ->
+                val senderUid = AuthRepository.currentUserId ?: return@setItems
+                button.isEnabled = false
+                val senderName = AuthRepository.currentUser?.displayName ?: "A friend"
+                UserRepository.sendNudge(senderUid, entry.uid, senderName, NUDGE_MESSAGES[which]) { result ->
+                    if (!isAdded || view == null) return@sendNudge
+                    when (result) {
+                        NudgeResult.SENT -> {
+                            val sentCount = (nudgesSentToday[quotaKey] ?: 0) + 1
+                            nudgesSentToday[quotaKey] = sentCount
+                            button.text = "NUDGE $sentCount/2"
+                            button.isEnabled = sentCount < 2
+                            Toast.makeText(
+                                requireContext(),
+                                "Nudge sent to ${entry.name} ($sentCount/2 today)",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        NudgeResult.LIMIT_REACHED -> {
+                            button.text = "MAX SENT TODAY"
+                            button.isEnabled = false
+                            Toast.makeText(requireContext(), "Two nudges sent to ${entry.name} today", Toast.LENGTH_SHORT).show()
+                        }
+                        NudgeResult.FAILED -> {
+                            button.isEnabled = true
+                            Toast.makeText(requireContext(), "Couldn't send nudge. Try again.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun formatMinutes(minutes: Double): String {
+        val total = minutes.toInt()
+        val hours = total / 60
+        val remainder = total % 60
+        return if (hours > 0) "${hours}h ${remainder}m" else "${remainder}m"
     }
 
     private fun shareAppInvite() {
@@ -155,5 +273,14 @@ class FriendsFragment : Fragment() {
             )
         }
         startActivity(Intent.createChooser(intent, "Invite a friend"))
+    }
+
+    companion object {
+        private val NUDGE_MESSAGES = arrayOf(
+            "That was your 5-minute break, right?",
+            "Even the algorithm thinks you've had enough.",
+            "Your thumb just hit overtime.",
+            "Your future self called. It wants those hours back."
+        )
     }
 }

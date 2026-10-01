@@ -19,13 +19,13 @@
                 style="@style/ByteShareTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Social Rank" />
+                android:text="Stats" />
 
             <TextView
                 style="@style/ByteShareSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Battle your friends for the lowest time" />
+                android:text="Your digital habits over the last seven days" />
 
             <!-- Usage access pitch (hidden once granted) -->
             <LinearLayout
@@ -60,6 +60,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:background="@drawable/button_chunky"
+                    android:backgroundTint="@null"
                     android:paddingVertical="12dp"
                     android:text="Grant Access"
                     android:textAllCaps="false"
@@ -67,7 +68,92 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Your Usage Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/card_black_background"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="TOTAL SCREEN TIME"
+                    android:textColor="@color/accent_lime"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/txt_total_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="0h 0m"
+                    android:textColor="@color/white"
+                    android:textSize="36sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:layout_marginVertical="14dp"
+                    android:background="@color/accent_lime" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DAILY AVERAGE"
+                            android:textColor="#BFC0C4"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txt_daily_average"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-black"
+                            android:text="0h 0m"
+                            android:textColor="@color/white"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="WEIGHTED SCORE"
+                            android:textColor="#BFC0C4"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txt_weighted_score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif-black"
+                            android:text="0m"
+                            android:textColor="@color/accent_lime"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Usage by category -->
             <LinearLayout
                 style="@style/ByteShareCard"
                 android:layout_width="match_parent"
@@ -81,7 +167,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:text="Your usage"
+                    android:text="USAGE BY CATEGORY"
                     android:textColor="@color/primary_ink"
                     android:textSize="20sp" />
 
@@ -122,64 +208,121 @@
                         android:background="@color/cat_productive" />
                 </LinearLayout>
 
-                <GridLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:columnCount="2">
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
 
-                    <!-- Social -->
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="4dp"
-                        android:background="@drawable/card_chunky"
-                        android:backgroundTint="@color/bg_cream"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="SOCIAL"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/gray_ink" />
-                        <TextView
-                            android:id="@+id/txt_social_time"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="0m"
-                            android:textSize="14sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+                        <View android:layout_width="8dp" android:layout_height="36dp" android:background="@color/cat_social" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:text="SOCIAL" android:textColor="@color/primary_ink" android:textSize="14sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0× score weight" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:orientation="vertical">
+                            <TextView android:id="@+id/txt_social_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/primary_ink" android:textSize="15sp" />
+                            <TextView android:id="@+id/txt_social_share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Stream -->
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#D8D5CC" />
+
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="4dp"
-                        android:background="@drawable/card_chunky"
-                        android:backgroundTint="@color/bg_cream"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="STREAM"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/gray_ink" />
-                        <TextView
-                            android:id="@+id/txt_stream_time"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-black"
-                            android:text="0m"
-                            android:textSize="14sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+                        <View android:layout_width="8dp" android:layout_height="36dp" android:background="@color/cat_stream" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:text="STREAMING" android:textColor="@color/primary_ink" android:textSize="14sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5× score weight" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:orientation="vertical">
+                            <TextView android:id="@+id/txt_stream_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/primary_ink" android:textSize="15sp" />
+                            <TextView android:id="@+id/txt_stream_share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
                     </LinearLayout>
-                </GridLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#D8D5CC" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+                        <View android:layout_width="8dp" android:layout_height="36dp" android:background="@color/cat_neutral" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:text="NEUTRAL" android:textColor="@color/primary_ink" android:textSize="14sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.0× score weight" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:orientation="vertical">
+                            <TextView android:id="@+id/txt_neutral_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/primary_ink" android:textSize="15sp" />
+                            <TextView android:id="@+id/txt_neutral_share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#D8D5CC" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="10dp">
+                        <View android:layout_width="8dp" android:layout_height="36dp" android:background="@color/cat_productive" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:text="PRODUCTIVE" android:textColor="@color/primary_ink" android:textSize="14sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0.5× score weight" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="end" android:orientation="vertical">
+                            <TextView android:id="@+id/txt_productive_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-black" android:textColor="@color/primary_ink" android:textSize="15sp" />
+                            <TextView android:id="@+id/txt_productive_share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/gray_ink" android:textSize="11sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/ByteShareCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="TOP APPS · LAST 7 DAYS"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:id="@+id/top_apps_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/txt_apps_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="No app usage found in this period."
+                    android:textColor="@color/gray_ink"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- AdMob Banner Ad -->

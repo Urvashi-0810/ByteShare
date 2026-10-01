@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/card_chunky"
@@ -23,12 +24,12 @@
         android:background="@drawable/button_chunky"
         android:backgroundTint="@color/accent_lime">
 
-        <TextView
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="💳"
-            android:textSize="36sp" />
+            android:contentDescription="Card payment"
+            android:src="@drawable/ic_payment_card" />
     </FrameLayout>
 
     <TextView
@@ -68,7 +69,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
-                android:text="Sda 🍕"
                 android:textColor="@color/primary_ink"
                 android:textSize="18sp" />
 
@@ -78,7 +78,6 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:fontFamily="sans-serif-black"
-                android:text="₹600"
                 android:textColor="@color/primary_ink"
                 android:textSize="22sp" />
         </RelativeLayout>
@@ -90,22 +89,26 @@
             android:background="#E5E5EA" />
 
         <TextView
+            android:id="@+id/txt_stripe_multiplier"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Calculated via Fame Engine (Multiplier: 1.20×)"
+            android:text="Calculated from your seven-day rank"
             android:textColor="@color/gray_ink"
             android:textSize="12sp" />
     </LinearLayout>
 
     <!-- Pay Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_pay_stripe_submit"
         style="@style/ByteShareButton"
         android:layout_marginTop="20dp"
         android:background="@drawable/button_chunky"
-        android:backgroundTint="@color/primary_ink"
-        android:text="Pay ₹600 via Stripe 💳"
-        android:textColor="@color/accent_lime" />
+        android:backgroundTint="@null"
+        android:textColor="@color/primary_ink"
+        app:icon="@drawable/ic_payment_card"
+        app:iconGravity="textStart"
+        app:iconPadding="10dp"
+        app:iconTint="@color/primary_ink" />
 
     <!-- Disclaimer -->
     <TextView

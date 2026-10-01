@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.byteshare.R
@@ -16,15 +17,19 @@ import com.example.byteshare.data.AuthRepository
 import com.example.byteshare.data.Crew
 import com.example.byteshare.data.FirebaseCrewRepository
 import com.example.byteshare.data.FriendEntry
-import com.example.byteshare.data.UsageStatsCollector
 import com.example.byteshare.data.UserRepository
 import com.example.byteshare.logic.FameEngine
 import com.google.firebase.database.ValueEventListener
+import java.util.Locale
+import kotlin.math.roundToLong
 
 class CrewDetailFragment : Fragment() {
 
     private var crewId: String? = null
     private var crewListener: ValueEventListener? = null
+    private var payableAmountMinor: Long? = null
+    private var payableMultiplier: Double? = null
+    private var memberLoadGeneration = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,17 +50,26 @@ class CrewDetailFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        val id = crewId ?: return
+        val id = crewId ?: run {
+            showCrewLoadError(view, "CREW ID MISSING", "Return to Crews and open the crew again.")
+            return
+        }
 
         // Attach a real-time listener on this specific crew
         crewListener = FirebaseCrewRepository.listenForCrew(id) { crew ->
-            if (isAdded && crew != null) {
-                bindCrewData(view, crew)
+            if (isAdded && this.view === view) {
+                if (crew != null) bindCrewData(view, crew)
+                else showCrewLoadError(
+                    view,
+                    "CREW DATA UNAVAILABLE",
+                    "Couldn't load crew data. Check your connection and try again."
+                )
             }
         }
     }
 
     override fun onDestroyView() {
+        memberLoadGeneration++
         super.onDestroyView()
         // Clean up Firebase listener
         val id = crewId
@@ -94,12 +108,21 @@ class CrewDetailFragment : Fragment() {
         // Populate Bill Split Table
         populateBillSplitTable(view, crew)
 
-        // Populate Why You Pay breakdown from live phone stats
-        populateWhyYouPaySection(view, crew)
-
-        // Stripe Payment Button
-        view.findViewById<Button>(R.id.btn_pay_stripe)?.setOnClickListener {
-            PayBillDialogFragment.show(parentFragmentManager, crew.name, crew.oweAmount.toInt())
+        // Payment waits for all member scores so the displayed and charged shares match.
+        view.findViewById<Button>(R.id.btn_pay_stripe)?.apply {
+            isEnabled = false
+            text = "Loading split…"
+            setOnClickListener {
+                payableAmountMinor?.let { amount ->
+                    PayBillDialogFragment.show(
+                        parentFragmentManager,
+                        crew.name,
+                        crew.id,
+                        amount,
+                        payableMultiplier ?: return@let
+                    )
+                }
+            }
         }
     }
 
@@ -109,16 +132,32 @@ class CrewDetailFragment : Fragment() {
         view.findViewById<TextView>(R.id.txt_split_total).text = "₹${crew.totalBill.toInt()}"
 
         val memberUids = crew.members.keys.toList()
-        if (memberUids.isEmpty()) return
+        if (memberUids.isEmpty()) {
+            showCrewLoadError(
+                view,
+                "CREW MEMBERS NOT FOUND",
+                "No member records are available to calculate this split."
+            )
+            return
+        }
 
         val myUid = AuthRepository.currentUserId
         val entries = mutableListOf<FriendEntry>()
         var pending = memberUids.size
+        val requestGeneration = ++memberLoadGeneration
 
         for (uid in memberUids) {
             UserRepository.fetchFriendEntry(uid) { entry ->
-                entries.add(entry ?: FriendEntry(uid, "Member", 0.0, 0.0))
-                if (--pending == 0 && isAdded) {
+                entries.add(entry ?: FriendEntry(
+                    uid = uid,
+                    name = "Member",
+                    rawMinutes = 0.0,
+                    weightedMinutes = 0.0,
+                    usageAvailable = false
+                ))
+                if (--pending == 0 && isAdded && this.view === view &&
+                    requestGeneration == memberLoadGeneration
+                ) {
                     renderMemberRows(view, crew, entries, myUid)
                 }
             }
@@ -134,15 +173,35 @@ class CrewDetailFragment : Fragment() {
         val container = view.findViewById<LinearLayout>(R.id.member_rows_container)
         container.removeAllViews()
 
-        // Lowest weighted usage = rank 1 = smallest bill multiplier
-        val sorted = entries.sortedBy { it.weightedMinutes }
-        val mults = FameEngine.multipliersFor(sorted.size)
-        val perHead = crew.totalBill / sorted.size
+        if (entries.any { !it.usageAvailable }) {
+            payableAmountMinor = null
+            payableMultiplier = null
+            showCrewLoadError(
+                view,
+                "WAITING FOR SCORES",
+                "Every member needs a current seven-day usage sync before we can calculate the split."
+            )
+            return
+        }
+
+        // Lowest rolling weighted usage = rank 1 = smallest bill multiplier
+        val sorted = entries.sortedWith(compareBy<FriendEntry> { it.weightedMinutes }.thenBy { it.uid })
+        val baseline = FameEngine.multipliersFor(sorted.size)
+        FirebaseCrewRepository.saveBaselineMultipliersIfChanged(
+            crew.id,
+            sorted.mapIndexed { index, entry -> entry.uid to baseline[index] }.toMap()
+        )
+        val reductions = sorted.map { crew.multiplierReductions[it.uid] ?: 0.0 }
+        val mults = FameEngine.applyMultiplierReductions(baseline, reductions)
+        val sharesMinor = FameEngine.allocateSharesMinorUnits(crew.totalBill, mults)
+        val baseShareMinor = (crew.totalBill * 100.0 / sorted.size).roundToLong()
+        payableAmountMinor = null
+        payableMultiplier = null
 
         sorted.forEachIndexed { index, entry ->
             val isYou = entry.uid == myUid
             val mult = mults[index]
-            val pays = (perHead * mult).toInt()
+            val paysMinor = sharesMinor[index]
             val name = if (isYou) "You" else entry.name
 
             val rowView = layoutInflater.inflate(R.layout.item_member_split, container, false)
@@ -150,31 +209,63 @@ class CrewDetailFragment : Fragment() {
                 name.firstOrNull()?.uppercase() ?: "?"
             rowView.findViewById<TextView>(R.id.txt_member_name).text = name
             rowView.findViewById<TextView>(R.id.txt_member_mult).text = String.format("%.2f", mult)
-            rowView.findViewById<TextView>(R.id.txt_member_pays).text = "₹$pays"
+            rowView.findViewById<TextView>(R.id.txt_member_pays).text = formatMoney(paysMinor)
 
             if (isYou) {
+                populateWhyYouPaySection(view, entry)
                 rowView.findViewById<TextView>(R.id.badge_you).visibility = View.VISIBLE
                 rowView.findViewById<LinearLayout>(R.id.row_member_container)
                     .setBackgroundColor(Color.parseColor("#F2FCE8")) // Light green highlight
                 view.findViewById<TextView>(R.id.txt_mult_badge).text =
                     String.format("×%.2f", mult)
-                view.findViewById<TextView>(R.id.txt_why_you_pay_title).text = "Why you pay ₹$pays"
+                view.findViewById<TextView>(R.id.txt_why_you_pay_title).text =
+                    "Why you pay ${formatMoney(paysMinor)}"
+                val baselineText = String.format(Locale.US, "%.2f", baseline[index])
+                val finalText = String.format(Locale.US, "%.2f", mult)
+                view.findViewById<TextView>(R.id.txt_bill_formula).text =
+                    "₹${crew.totalBill.toInt()} ÷ ${sorted.size} = ${formatMoney(baseShareMinor)} base share\n" +
+                            "×$baselineText rank multiplier → ×$finalText after challenge adjustments = " +
+                            "${formatMoney(paysMinor)} allocated (paise balanced across crew)"
+                payableAmountMinor = paysMinor
+                payableMultiplier = mult
+                view.findViewById<Button>(R.id.btn_pay_stripe)?.apply {
+                    text = "Pay ${formatMoney(paysMinor)}"
+                    isEnabled = true
+                }
             }
 
             container.addView(rowView)
         }
+        showCrewContent(view)
     }
 
-    private fun populateWhyYouPaySection(view: View, crew: Crew) {
-        view.findViewById<TextView>(R.id.txt_why_you_pay_title).text =
-            "Why you pay ₹${crew.oweAmount.toInt()}"
+    private fun showCrewContent(view: View) {
+        view.findViewById<View>(R.id.crew_detail_loading).visibility = View.GONE
+        view.findViewById<View>(R.id.crew_detail_content).visibility = View.VISIBLE
+    }
 
-        // Live stats from this phone; renderMemberRows overrides title/badge with real rank data
-        val usageData = UsageStatsCollector.collectTodayUsage(requireContext())
-        val socialMins = usageData.filter { it.category == "social" }.sumOf { it.minutes }
-        val streamMins = usageData.filter { it.category == "stream" }.sumOf { it.minutes }
-        val neutralMins = usageData.filter { it.category == "neutral" }.sumOf { it.minutes }
-        val prodMins = usageData.filter { it.category == "productive" }.sumOf { it.minutes }
+    private fun showCrewLoadError(view: View, title: String, message: String) {
+        view.findViewById<View>(R.id.crew_detail_content).visibility = View.GONE
+        view.findViewById<View>(R.id.crew_detail_loading).visibility = View.VISIBLE
+        view.findViewById<ProgressBar>(R.id.crew_detail_loading_progress).visibility = View.GONE
+        view.findViewById<TextView>(R.id.txt_crew_detail_loading).text = title
+        view.findViewById<TextView>(R.id.txt_crew_detail_error).apply {
+            text = message
+            visibility = View.VISIBLE
+        }
+    }
+
+    private fun formatMoney(minorUnits: Long): String {
+        val rupees = minorUnits / 100
+        val paise = minorUnits % 100
+        return if (paise == 0L) "₹$rupees" else String.format(Locale.US, "₹%d.%02d", rupees, paise)
+    }
+
+    private fun populateWhyYouPaySection(view: View, entry: FriendEntry) {
+        val socialMins = entry.socialMinutes
+        val streamMins = entry.streamMinutes
+        val neutralMins = entry.neutralMinutes
+        val prodMins = entry.productiveMinutes
 
         fun hours(m: Double) = String.format("%.1fh", m / 60.0)
         view.findViewById<TextView>(R.id.txt_social_hours).text = hours(socialMins)
@@ -182,11 +273,45 @@ class CrewDetailFragment : Fragment() {
         view.findViewById<TextView>(R.id.txt_neutral_hours).text = hours(neutralMins)
         view.findViewById<TextView>(R.id.txt_productive_hours).text = hours(prodMins)
 
-        view.findViewById<TextView>(R.id.txt_raw_time_sum).text =
-            hours(socialMins + streamMins + neutralMins + prodMins)
-        view.findViewById<TextView>(R.id.txt_weighted_sum).text = String.format(
-            "%.1f", socialMins * 2.0 + streamMins * 1.5 + neutralMins * 1.0 + prodMins * 0.5
-        )
+        view.findViewById<TextView>(R.id.txt_raw_time_sum).text = hours(entry.rawMinutes)
+        view.findViewById<TextView>(R.id.txt_weighted_sum).text =
+            String.format(Locale.US, "%.1f", entry.weightedMinutes)
+
+        val socialScore = socialMins * 2.0
+        val streamScore = streamMins * 1.5
+        val neutralScore = neutralMins
+        val productiveScore = prodMins * 0.5
+        val weightedScore = entry.weightedMinutes
+        view.findViewById<TextView>(R.id.txt_score_formula).text =
+            "${socialMins.toInt()}m × 2 + ${streamMins.toInt()}m × 1.5 + " +
+                    "${neutralMins.toInt()}m × 1 + ${prodMins.toInt()}m × 0.5 = " +
+                    "${weightedScore.toInt()} weighted minutes"
+
+        setWeightedBar(view, R.id.bar_social, R.id.lbl_social, R.id.grp_social_value, socialScore, weightedScore)
+        setWeightedBar(view, R.id.bar_stream, R.id.lbl_stream, R.id.grp_stream_value, streamScore, weightedScore)
+        setWeightedBar(view, R.id.bar_neutral, R.id.lbl_neutral, R.id.grp_neutral_value, neutralScore, weightedScore)
+        setWeightedBar(view, R.id.bar_productive, R.id.lbl_productive, R.id.grp_productive_value, productiveScore, weightedScore)
+    }
+
+    private fun setWeightedBar(
+        root: View,
+        barId: Int,
+        labelId: Int,
+        valueGroupId: Int,
+        contribution: Double,
+        totalScore: Double
+    ) {
+        val bar = root.findViewById<View>(barId)
+        val row = bar.parent as View
+        bar.post {
+            val labelWidth = row.findViewById<View>(labelId).width
+            val valueWidth = row.findViewById<View>(valueGroupId).width
+            val availableWidth = (row.width - labelWidth - valueWidth).coerceAtLeast(0)
+            val weight = if (totalScore > 0.0) contribution / totalScore else 0.0
+            bar.layoutParams = bar.layoutParams.apply {
+                width = (availableWidth * weight).toInt()
+            }
+        }
     }
 
     private fun shareInvite(crewName: String, code: String) {

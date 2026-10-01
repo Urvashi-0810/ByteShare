@@ -34,6 +34,6 @@ androidx-work-runtime = { group = "androidx.work", name = "work-runtime-ktx", ve
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 

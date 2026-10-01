@@ -6,8 +6,10 @@
     android:background="@color/bg_cream">
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/crew_detail_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -59,7 +61,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="Sda"
                             android:textSize="26sp" />
                     </LinearLayout>
 
@@ -68,7 +69,6 @@
                         style="@style/ByteShareSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4 members · code A56KT4"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -85,7 +85,7 @@
                     app:tint="@color/primary_ink" />
             </RelativeLayout>
 
-            <!-- THIS WEEK'S BILL CARD -->
+            <!-- Rolling seven-day score period -->
             <LinearLayout
                 style="@style/ByteShareCard"
                 android:layout_width="match_parent"
@@ -103,7 +103,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="THIS WEEK'S BILL"
+                        android:text="LAST 7 DAYS"
                         android:textColor="@color/gray_ink"
                         android:textSize="12sp" />
 
@@ -112,7 +112,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         android:fontFamily="sans-serif-medium"
-                        android:text="equal split: ✎"
+                        android:text="rank-based shares"
                         android:textColor="@color/gray_ink"
                         android:textSize="12sp" />
                 </RelativeLayout>
@@ -123,7 +123,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="₹2,000"
                     android:textColor="@color/primary_ink"
                     android:textSize="36sp" />
 
@@ -159,7 +158,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="4"
                             android:textColor="@color/primary_ink"
                             android:textSize="16sp" />
                     </LinearLayout>
@@ -189,7 +187,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="₹2,000"
                             android:textColor="@color/primary_ink"
                             android:textSize="16sp" />
                     </LinearLayout>
@@ -219,7 +216,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="₹500"
                             android:textColor="@color/primary_ink"
                             android:textSize="16sp" />
                     </LinearLayout>
@@ -265,8 +261,7 @@
                     android:layout_height="40dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:background="@drawable/button_chunky"
-                    android:backgroundTint="@color/primary_ink"
+                    android:background="@drawable/button_chunky_ink"
                     android:paddingHorizontal="16dp"
                     android:text="SEND"
                     android:textColor="@color/white"
@@ -388,14 +383,18 @@
                 </RelativeLayout>
 
                 <!-- Stripe Checkout Button -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_pay_stripe"
                     style="@style/ByteShareButton"
                     android:layout_margin="16dp"
                     android:background="@drawable/button_chunky"
-                    android:backgroundTint="@color/accent_lime"
-                    android:text="Pay Share via Stripe 💳"
-                    android:textColor="@color/primary_ink" />
+                    android:backgroundTint="@null"
+                    android:contentDescription="Pay your calculated bill share"
+                    android:textColor="@color/primary_ink"
+                    app:icon="@drawable/ic_payment_card"
+                    app:iconGravity="textStart"
+                    app:iconPadding="10dp"
+                    app:iconTint="@color/primary_ink" />
             </LinearLayout>
 
             <!-- WHY YOU PAY SECTION -->
@@ -441,7 +440,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="Why you pay ₹600"
                             android:textColor="@color/primary_ink"
                             android:textSize="20sp" />
 
@@ -449,11 +447,21 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-bold"
-                            android:text="TRANSPARENT CALCULATION FORMULA"
+                            android:text="LAST 7 DAYS · WEIGHTED SCORE"
                             android:textColor="@color/gray_ink"
                             android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txt_score_formula"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="Score = social minutes × 2 + streaming minutes × 1.5 + neutral minutes + productive minutes × 0.5"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="12sp" />
 
                 <!-- Category Breakdown Rows -->
                 <LinearLayout
@@ -478,14 +486,17 @@
                             android:textSize="11sp" />
 
                         <View
-                            android:layout_width="100dp"
+                            android:id="@+id/bar_social"
+                            android:layout_width="0dp"
                             android:layout_height="8dp"
                             android:layout_centerVertical="true"
                             android:layout_toEndOf="@id/lbl_social"
+                            android:layout_toStartOf="@id/grp_social_value"
                             android:background="@drawable/button_chunky"
                             android:backgroundTint="@color/cat_social" />
 
                         <LinearLayout
+                            android:id="@+id/grp_social_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
@@ -498,7 +509,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-black"
-                                android:text="4.3h"
                                 android:textColor="@color/primary_ink"
                                 android:textSize="14sp" />
 
@@ -527,14 +537,17 @@
                             android:textSize="11sp" />
 
                         <View
-                            android:layout_width="70dp"
+                            android:id="@+id/bar_stream"
+                            android:layout_width="0dp"
                             android:layout_height="8dp"
                             android:layout_centerVertical="true"
                             android:layout_toEndOf="@id/lbl_stream"
+                            android:layout_toStartOf="@id/grp_stream_value"
                             android:background="@drawable/button_chunky"
                             android:backgroundTint="@color/cat_stream" />
 
                         <LinearLayout
+                            android:id="@+id/grp_stream_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
@@ -547,7 +560,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-black"
-                                android:text="2.8h"
                                 android:textColor="@color/primary_ink"
                                 android:textSize="14sp" />
 
@@ -576,14 +588,17 @@
                             android:textSize="11sp" />
 
                         <View
-                            android:layout_width="40dp"
+                            android:id="@+id/bar_neutral"
+                            android:layout_width="0dp"
                             android:layout_height="8dp"
                             android:layout_centerVertical="true"
                             android:layout_toEndOf="@id/lbl_neutral"
+                            android:layout_toStartOf="@id/grp_neutral_value"
                             android:background="@drawable/button_chunky"
                             android:backgroundTint="@color/cat_neutral" />
 
                         <LinearLayout
+                            android:id="@+id/grp_neutral_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
@@ -596,7 +611,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-black"
-                                android:text="1.5h"
                                 android:textColor="@color/primary_ink"
                                 android:textSize="14sp" />
 
@@ -625,14 +639,17 @@
                             android:textSize="11sp" />
 
                         <View
-                            android:layout_width="35dp"
+                            android:id="@+id/bar_productive"
+                            android:layout_width="0dp"
                             android:layout_height="8dp"
                             android:layout_centerVertical="true"
                             android:layout_toEndOf="@id/lbl_productive"
+                            android:layout_toStartOf="@id/grp_productive_value"
                             android:background="@drawable/button_chunky"
                             android:backgroundTint="@color/cat_productive" />
 
                         <LinearLayout
+                            android:id="@+id/grp_productive_value"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
@@ -645,7 +662,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-black"
-                                android:text="1.3h"
                                 android:textColor="@color/primary_ink"
                                 android:textSize="14sp" />
 
@@ -695,7 +711,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="9.8h"
                             android:textColor="@color/primary_ink"
                             android:textSize="18sp" />
                     </LinearLayout>
@@ -724,7 +739,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="889.5"
                             android:textColor="@color/primary_ink"
                             android:textSize="18sp" />
                     </LinearLayout>
@@ -753,15 +767,60 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-black"
-                            android:text="×1.20"
                             android:textColor="@color/primary_ink"
                             android:textSize="18sp" />
                     </LinearLayout>
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/txt_bill_formula"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
             </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/crew_detail_loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <ProgressBar
+            android:id="@+id/crew_detail_loading_progress"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="@color/primary_ink" />
+
+        <TextView
+            android:id="@+id/txt_crew_detail_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="LOADING CREW SCORES"
+            android:textColor="@color/primary_ink"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/txt_crew_detail_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textColor="@color/gray_ink"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

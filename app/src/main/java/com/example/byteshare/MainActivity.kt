@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.byteshare.logic.AdManager
 import com.example.byteshare.logic.RevenueCatManager
-import com.example.byteshare.logic.StripeManager
 import com.example.byteshare.data.AuthRepository
 import com.example.byteshare.data.UsageStatsCollector
 import com.example.byteshare.data.UsageSyncWorker
@@ -33,10 +32,9 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        // Initialize AdMob SDK, RevenueCat, and Stripe SDK
+        // Initialize AdMob and RevenueCat SDKs
         AdManager.initialize(this)
         RevenueCatManager.configure(this)
-        StripeManager.initialize(this)
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setOnItemSelectedListener { item ->

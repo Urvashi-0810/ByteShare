@@ -79,7 +79,7 @@ class MeFragment : Fragment() {
     }
 
     private fun updateUsageUI(view: View) {
-        val usageData = UsageStatsCollector.collectTodayUsage(requireContext())
+        val usageData = UsageStatsCollector.collectRollingSevenDayUsage(requireContext())
         
         val socialTime = usageData.filter { it.category == "social" }.sumOf { it.minutes }
         val streamTime = usageData.filter { it.category == "stream" }.sumOf { it.minutes }
@@ -95,12 +95,11 @@ class MeFragment : Fragment() {
         view.findViewById<TextView>(R.id.txt_productive_time).text = formatTime(productiveTime)
         
         // Update Progress Bar Weights
-        if (totalMinutes > 0) {
-            updateWeight(view.findViewById(R.id.progress_social), socialTime / totalMinutes)
-            updateWeight(view.findViewById(R.id.progress_stream), streamTime / totalMinutes)
-            updateWeight(view.findViewById(R.id.progress_neutral), neutralTime / totalMinutes)
-            updateWeight(view.findViewById(R.id.progress_productive), productiveTime / totalMinutes)
-        }
+        val divisor = totalMinutes.takeIf { it > 0.0 } ?: 1.0
+        updateWeight(view.findViewById(R.id.progress_social), socialTime / divisor)
+        updateWeight(view.findViewById(R.id.progress_stream), streamTime / divisor)
+        updateWeight(view.findViewById(R.id.progress_neutral), neutralTime / divisor)
+        updateWeight(view.findViewById(R.id.progress_productive), productiveTime / divisor)
         
         // Update App List (Bifurcation)
         val appListContainer = view.findViewById<LinearLayout>(R.id.app_list_container)

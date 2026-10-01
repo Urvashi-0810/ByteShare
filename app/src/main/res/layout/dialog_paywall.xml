@@ -233,8 +233,7 @@
         android:id="@+id/btn_subscribe_pro"
         style="@style/ByteShareButton"
         android:layout_marginTop="20dp"
-        android:background="@drawable/button_chunky"
-        android:backgroundTint="@color/primary_ink"
+        android:background="@drawable/button_chunky_ink"
         android:text="Unlock ByteShare Pro ($2.99/mo)"
         android:textColor="@color/accent_lime" />
 
