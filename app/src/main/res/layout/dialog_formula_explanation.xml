@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_chunky"
+    android:backgroundTint="@color/bg_cream"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Handle indicator bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="#D1D1D6" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:fontFamily="sans-serif-black"
+            android:text="Formula Breakdown 🧮"
+            android:textColor="@color/primary_ink"
+            android:textSize="22sp" />
+
+        <ImageView
+            android:id="@+id/btn_close_formula"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/button_chunky"
+            android:backgroundTint="@color/white"
+            android:padding="6dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@color/primary_ink" />
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="How your score &amp; bill share were calculated"
+        android:textColor="@color/gray_ink"
+        android:textSize="13sp" />
+
+    <!-- Step 1: Weighted Minutes Score Card -->
+    <LinearLayout
+        style="@style/ByteShareCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="STEP 1 · WEIGHTED MINUTES SCORE"
+            android:textColor="@color/gray_ink"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/txt_dialog_score_formula"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:lineSpacingExtra="3dp"
+            android:text="2303m × 2.0 + 122m × 1.5 + 2677m × 1.0 + 0m × 0.5 = 7469 weighted minutes"
+            android:textColor="@color/primary_ink"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Step 2: Bill Share Allocation Card -->
+    <LinearLayout
+        style="@style/ByteShareCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="STEP 2 · BILL SHARE ALLOCATION"
+            android:textColor="@color/gray_ink"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/txt_dialog_bill_formula"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-bold"
+            android:lineSpacingExtra="3dp"
+            android:text="₹200 ÷ 2 = ₹100 base share&#10;×1.50 rank multiplier → ₹150 allocated"
+            android:textColor="@color/primary_ink"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Got it Button -->
+    <Button
+        android:id="@+id/btn_got_it_formula"
+        style="@style/ByteShareButton"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/button_chunky_ink"
+        android:backgroundTint="@null"
+        android:text="Got it! 👍"
+        android:textColor="@color/accent_lime"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+</LinearLayout>
