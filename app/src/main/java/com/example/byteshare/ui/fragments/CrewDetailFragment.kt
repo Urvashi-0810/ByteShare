@@ -31,6 +31,9 @@ class CrewDetailFragment : Fragment() {
     private var payableMultiplier: Double? = null
     private var memberLoadGeneration = 0
 
+    private var currentScoreFormula: String = ""
+    private var currentBillFormula: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crewId = arguments?.getString(ARG_CREW_ID)
@@ -48,6 +51,15 @@ class CrewDetailFragment : Fragment() {
         // Back button
         view.findViewById<ImageView>(R.id.btn_back).setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+
+        // Weighted card click opens Formula Breakdown overlay
+        view.findViewById<View>(R.id.card_weighted_container)?.setOnClickListener {
+            FormulaDialogFragment.show(
+                parentFragmentManager,
+                currentScoreFormula,
+                currentBillFormula
+            )
         }
 
         val id = crewId ?: run {
@@ -222,10 +234,11 @@ class CrewDetailFragment : Fragment() {
                     "Why you pay ${formatMoney(paysMinor)}"
                 val baselineText = String.format(Locale.US, "%.2f", baseline[index])
                 val finalText = String.format(Locale.US, "%.2f", mult)
-                view.findViewById<TextView>(R.id.txt_bill_formula).text =
-                    "₹${crew.totalBill.toInt()} ÷ ${sorted.size} = ${formatMoney(baseShareMinor)} base share\n" +
-                            "×$baselineText rank multiplier → ×$finalText after challenge adjustments = " +
-                            "${formatMoney(paysMinor)} allocated (paise balanced across crew)"
+                
+                currentBillFormula = "₹${crew.totalBill.toInt()} ÷ ${sorted.size} = ${formatMoney(baseShareMinor)} base share\n" +
+                        "×$baselineText rank multiplier → ×$finalText after challenge adjustments = " +
+                        "${formatMoney(paysMinor)} allocated (paise balanced across crew)"
+
                 payableAmountMinor = paysMinor
                 payableMultiplier = mult
                 view.findViewById<Button>(R.id.btn_pay_stripe)?.apply {
@@ -277,41 +290,25 @@ class CrewDetailFragment : Fragment() {
         view.findViewById<TextView>(R.id.txt_weighted_sum).text =
             String.format(Locale.US, "%.1f", entry.weightedMinutes)
 
-        val socialScore = socialMins * 2.0
-        val streamScore = streamMins * 1.5
-        val neutralScore = neutralMins
-        val productiveScore = prodMins * 0.5
         val weightedScore = entry.weightedMinutes
-        view.findViewById<TextView>(R.id.txt_score_formula).text =
-            "${socialMins.toInt()}m × 2 + ${streamMins.toInt()}m × 1.5 + " +
-                    "${neutralMins.toInt()}m × 1 + ${prodMins.toInt()}m × 0.5 = " +
-                    "${weightedScore.toInt()} weighted minutes"
+        currentScoreFormula = "${socialMins.toInt()}m × 2.0 + ${streamMins.toInt()}m × 1.5 + " +
+                "${neutralMins.toInt()}m × 1.0 + ${prodMins.toInt()}m × 0.5 = " +
+                "${String.format(Locale.US, "%.1f", weightedScore)} weighted minutes"
 
-        setWeightedBar(view, R.id.bar_social, R.id.lbl_social, R.id.grp_social_value, socialScore, weightedScore)
-        setWeightedBar(view, R.id.bar_stream, R.id.lbl_stream, R.id.grp_stream_value, streamScore, weightedScore)
-        setWeightedBar(view, R.id.bar_neutral, R.id.lbl_neutral, R.id.grp_neutral_value, neutralScore, weightedScore)
-        setWeightedBar(view, R.id.bar_productive, R.id.lbl_productive, R.id.grp_productive_value, productiveScore, weightedScore)
+        // Set proportional bar weights for each category
+        val totalRawMins = entry.rawMinutes.takeIf { it > 0.0 } ?: 1.0
+        updateCategoryBar(view, R.id.bar_social, socialMins, totalRawMins)
+        updateCategoryBar(view, R.id.bar_stream, streamMins, totalRawMins)
+        updateCategoryBar(view, R.id.bar_neutral, neutralMins, totalRawMins)
+        updateCategoryBar(view, R.id.bar_productive, prodMins, totalRawMins)
     }
 
-    private fun setWeightedBar(
-        root: View,
-        barId: Int,
-        labelId: Int,
-        valueGroupId: Int,
-        contribution: Double,
-        totalScore: Double
-    ) {
-        val bar = root.findViewById<View>(barId)
-        val row = bar.parent as View
-        bar.post {
-            val labelWidth = row.findViewById<View>(labelId).width
-            val valueWidth = row.findViewById<View>(valueGroupId).width
-            val availableWidth = (row.width - labelWidth - valueWidth).coerceAtLeast(0)
-            val weight = if (totalScore > 0.0) contribution / totalScore else 0.0
-            bar.layoutParams = bar.layoutParams.apply {
-                width = (availableWidth * weight).toInt()
-            }
-        }
+    private fun updateCategoryBar(root: View, barId: Int, categoryMins: Double, totalMins: Double) {
+        val bar = root.findViewById<View>(barId) ?: return
+        val params = bar.layoutParams as? LinearLayout.LayoutParams ?: return
+        val fraction = if (totalMins > 0.0) (categoryMins / totalMins).coerceIn(0.0, 1.0) else 0.0
+        params.weight = fraction.toFloat()
+        bar.layoutParams = params
     }
 
     private fun shareInvite(crewName: String, code: String) {
