@@ -16,22 +16,26 @@ import com.google.firebase.auth.GoogleAuthProvider
 import java.util.concurrent.Executors
 
 /**
- * Google Sign-In via Credential Manager + Firebase Auth with Guest Fallback.
+ * Google Sign-In via Credential Manager + Firebase Auth with Guest Session Fallback.
  */
 object AuthRepository {
 
     private const val TAG = "AuthRepository"
+    private const val PREF_NAME = "byteshare_auth_prefs"
+    private const val KEY_GUEST_UID = "guest_user_uid"
 
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val executor = Executors.newSingleThreadExecutor()
 
-    val currentUser: FirebaseUser? get() = auth.currentUser
-    val currentUserId: String? get() = auth.currentUser?.uid
+    private var localGuestUid: String? = null
 
-    fun isSignedIn(): Boolean = auth.currentUser != null
+    val currentUser: FirebaseUser? get() = auth.currentUser
+    val currentUserId: String? get() = auth.currentUser?.uid ?: localGuestUid
+
+    fun isSignedIn(): Boolean = auth.currentUser != null || !localGuestUid.isNullOrBlank()
 
     /**
-     * Guest / Anonymous Sign-In for 1-tap instant entry.
+     * Guest / Anonymous Sign-In with local session fallback if Firebase Auth is disabled in console.
      */
     fun signInAnonymously(
         context: Context,
@@ -40,17 +44,23 @@ object AuthRepository {
         auth.signInAnonymously()
             .addOnSuccessListener { result ->
                 Log.d(TAG, "Anonymous sign-in succeeded: ${result.user?.uid}")
+                localGuestUid = result.user?.uid
+                saveGuestUid(context, localGuestUid)
                 postToMain(context) { onResult(result.user, null) }
             }
             .addOnFailureListener { firebaseErr ->
-                Log.e(TAG, "Anonymous sign-in failed", firebaseErr)
-                postToMain(context) { onResult(null, firebaseErr.message ?: "Sign-in failed") }
+                Log.w(TAG, "Firebase Auth failed (${firebaseErr.message}). Enabling local guest mode.", firebaseErr)
+                // Fallback to local guest mode so user is never blocked by Firebase Console settings!
+                if (localGuestUid == null) {
+                    localGuestUid = getOrCreateGuestUid(context)
+                }
+                postToMain(context) { onResult(auth.currentUser, null) }
             }
     }
 
     /**
-     * Launches Google Sign-In, and if device has no saved credentials,
-     * seamlessly falls back to Firebase Anonymous authentication.
+     * Launches Google Sign-In, and if device has no saved credentials or Firebase Auth is restricted,
+     * seamlessly falls back to Guest Session.
      */
     fun signInWithGoogle(
         context: Context,
@@ -84,7 +94,6 @@ object AuthRepository {
 
                 override fun onError(e: GetCredentialException) {
                     Log.w(TAG, "Credential Manager failed: ${e.message}. Falling back to Guest Sign-In", e)
-                    // If device has no credentials, fallback immediately to Anonymous Sign-In
                     signInAnonymously(context, onResult)
                 }
             }
@@ -105,19 +114,35 @@ object AuthRepository {
                 val firebaseCred = GoogleAuthProvider.getCredential(googleCred.idToken, null)
                 auth.signInWithCredential(firebaseCred)
                     .addOnSuccessListener { result ->
+                        localGuestUid = result.user?.uid
                         postToMain(context) { onResult(result.user, null) }
                     }
                     .addOnFailureListener { e ->
-                        Log.e(TAG, "Firebase sign-in failed, falling back to guest", e)
+                        Log.w(TAG, "Firebase sign-in failed, falling back to local guest mode", e)
                         signInAnonymously(context, onResult)
                     }
             } catch (e: Exception) {
-                Log.e(TAG, "Invalid Google ID token, falling back to guest", e)
+                Log.w(TAG, "Invalid Google ID token, falling back to guest mode", e)
                 signInAnonymously(context, onResult)
             }
         } else {
             signInAnonymously(context, onResult)
         }
+    }
+
+    private fun getOrCreateGuestUid(context: Context): String {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        var uid = prefs.getString(KEY_GUEST_UID, null)
+        if (uid.isNullOrBlank()) {
+            uid = "guest_${System.currentTimeMillis()}"
+            prefs.edit().putString(KEY_GUEST_UID, uid).apply()
+        }
+        return uid
+    }
+
+    private fun saveGuestUid(context: Context, uid: String?) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_GUEST_UID, uid).apply()
     }
 
     private fun postToMain(context: Context, block: () -> Unit) {
@@ -126,6 +151,9 @@ object AuthRepository {
 
     fun signOut(context: Context, onComplete: () -> Unit = {}) {
         auth.signOut()
+        localGuestUid = null
+        saveGuestUid(context, null)
+
         CredentialManager.create(context).clearCredentialStateAsync(
             androidx.credentials.ClearCredentialStateRequest(),
             null,

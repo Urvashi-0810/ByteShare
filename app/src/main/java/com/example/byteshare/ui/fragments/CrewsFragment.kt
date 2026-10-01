@@ -44,11 +44,7 @@ class CrewsFragment : Fragment() {
             showJoinCrewDialog()
         }
 
-        // Quick Payment Actions
-        view.findViewById<View>(R.id.btn_quick_stripe_pay)?.setOnClickListener {
-            PayBillDialogFragment.show(parentFragmentManager, "Crew Split", "1", 60000L, 1.20)
-        }
-
+        // Quick Pro Upgrade Action
         view.findViewById<View>(R.id.btn_quick_revenuecat_pro)?.setOnClickListener {
             PaywallDialogFragment.show(parentFragmentManager)
         }

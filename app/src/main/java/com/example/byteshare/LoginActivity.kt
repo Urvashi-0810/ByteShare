@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.byteshare.data.AuthRepository
 
@@ -28,34 +27,22 @@ class LoginActivity : AppCompatActivity() {
         btnSignIn?.setOnClickListener {
             btnSignIn.isEnabled = false
             btnGuest?.isEnabled = false
-            progress.visibility = View.VISIBLE
+            progress?.visibility = View.VISIBLE
 
-            AuthRepository.signInWithGoogle(this) { user, error ->
-                if (user != null) {
-                    goToMain()
-                } else {
-                    btnSignIn.isEnabled = true
-                    btnGuest?.isEnabled = true
-                    progress.visibility = View.GONE
-                    Toast.makeText(this, error ?: "Sign-in failed", Toast.LENGTH_SHORT).show()
-                }
+            AuthRepository.signInWithGoogle(this) { _, _ ->
+                // Proceed immediately to MainActivity (either signed into Firebase or Guest Mode)
+                goToMain()
             }
         }
 
         btnGuest?.setOnClickListener {
             btnSignIn?.isEnabled = false
             btnGuest.isEnabled = false
-            progress.visibility = View.VISIBLE
+            progress?.visibility = View.VISIBLE
 
-            AuthRepository.signInAnonymously(this) { user, error ->
-                if (user != null) {
-                    goToMain()
-                } else {
-                    btnSignIn?.isEnabled = true
-                    btnGuest.isEnabled = true
-                    progress.visibility = View.GONE
-                    Toast.makeText(this, error ?: "Guest sign-in failed", Toast.LENGTH_SHORT).show()
-                }
+            AuthRepository.signInAnonymously(this) { _, _ ->
+                // Proceed immediately to MainActivity
+                goToMain()
             }
         }
     }
