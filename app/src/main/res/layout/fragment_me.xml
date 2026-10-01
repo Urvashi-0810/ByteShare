@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_cream">
@@ -44,7 +45,8 @@
                 android:id="@+id/txt_user_email"
                 style="@style/ByteShareSubtitle"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                tools:text="user@example.com" />
 
             <!-- Usage access pitch (hidden once granted) -->
             <LinearLayout
@@ -159,7 +161,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:fontFamily="sans-serif-black"
-                        android:text="?"
+                        tools:text="?"
                         android:textColor="@color/primary_ink"
                         android:textSize="36sp" />
                 </FrameLayout>
@@ -170,7 +172,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="You"
+                    tools:text="You"
                     android:textColor="@color/primary_ink"
                     android:textSize="24sp" />
 
@@ -191,7 +193,7 @@
                         android:backgroundTint="#FF8A65"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="🔥 5 Day Streak"
+                        tools:text="🔥 5 Day Streak"
                         android:textColor="@color/white"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -204,7 +206,7 @@
                         android:backgroundTint="@color/accent_lime"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="⭐️ 450 XP (Level 3)"
+                        tools:text="⭐️ 450 XP (Level 3)"
                         android:textColor="@color/primary_ink"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -251,7 +253,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="₹0"
+                    tools:text="₹0"
                     android:textColor="@color/primary_ink"
                     android:textSize="32sp" />
             </LinearLayout>
@@ -357,7 +359,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="sans-serif-black"
-                            android:text="0h 0m"
+                            tools:text="0h 0m"
                             android:textColor="@color/primary_ink"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -398,7 +400,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="sans-serif-black"
-                            android:text="0h 0m"
+                            tools:text="0h 0m"
                             android:textColor="@color/primary_ink"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -439,7 +441,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="sans-serif-black"
-                            android:text="0h 0m"
+                            tools:text="0h 0m"
                             android:textColor="@color/primary_ink"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -480,7 +482,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="sans-serif-black"
-                            android:text="0h 0m"
+                            tools:text="0h 0m"
                             android:textColor="@color/primary_ink"
                             android:textSize="14sp" />
                     </LinearLayout>

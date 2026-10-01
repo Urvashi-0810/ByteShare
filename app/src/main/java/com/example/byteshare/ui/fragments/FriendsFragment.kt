@@ -162,7 +162,7 @@ class FriendsFragment : Fragment() {
     private fun renderLeaderboard(view: View, friends: List<FriendEntry>, selfEntry: FriendEntry?) {
         rankedEntries = (friends + listOfNotNull(selfEntry))
             .distinctBy { it.uid }
-            .sortedBy { it.weightedMinutes } // Lower weighted minutes wins top rank
+            .sortedWith(compareBy<FriendEntry> { !it.usageAvailable }.thenBy { it.weightedMinutes })
         renderRows(view)
     }
 

@@ -160,13 +160,15 @@ def create_payment_intent(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Firebase sign-in is required")
 
+    # Ensure Firebase is initialized FIRST before verifying the token
+    root = get_database_root()
+
     try:
         firebase_user = auth.verify_id_token(authorization.removeprefix("Bearer "))
     except Exception as error:
         raise HTTPException(status_code=401, detail="Firebase token is invalid") from error
 
     uid = firebase_user["uid"]
-    root = get_database_root()
     crew = root.child("crews").child(body.crewId).get()
     if not isinstance(crew, dict) or not isinstance(crew.get("members"), dict):
         raise HTTPException(status_code=404, detail="Crew not found")

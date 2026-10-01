@@ -302,6 +302,20 @@ object FirebaseCrewRepository {
         }
     }
 
+    fun markBillAsPaid(crewId: String, onComplete: (Boolean) -> Unit = {}) {
+        val uid = AuthRepository.currentUserId
+        if (uid == null) {
+            onComplete(false)
+            return
+        }
+        crewsRef.child(crewId).child("paidMembers").child(uid).setValue(true)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { error ->
+                Log.e(TAG, "Failed to mark bill as paid", error)
+                onComplete(false)
+            }
+    }
+
     fun listenForCrew(crewId: String, onUpdate: (Crew?) -> Unit): ValueEventListener? {
         return try {
             val listener = object : ValueEventListener {
@@ -358,6 +372,12 @@ object FirebaseCrewRepository {
                     val multiplier = child.getValue(Double::class.java) ?: return@mapNotNull null
                     uid to multiplier
                 }.toMap()
+            val paidMembers = snapshot.child("paidMembers").children
+                .mapNotNull { child ->
+                    val uid = child.key ?: return@mapNotNull null
+                    val hasPaid = child.getValue(Boolean::class.java) ?: return@mapNotNull null
+                    uid to hasPaid
+                }.toMap()
 
             // Derive count/owe from members: avoids stale counters and join races
             val memberCount = members.size.coerceAtLeast(1)
@@ -373,7 +393,8 @@ object FirebaseCrewRepository {
                 createdBy = createdBy,
                 members = members,
                 multiplierReductions = multiplierReductions,
-                baselineMultipliers = baselineMultipliers
+                baselineMultipliers = baselineMultipliers,
+                paidMembers = paidMembers
             )
         } catch (e: Exception) {
             Log.e(TAG, "Exception parsing crew snapshot", e)
