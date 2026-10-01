@@ -103,8 +103,8 @@ object UserRepository {
             .addOnFailureListener { onResult(null) }
     }
 
-    /** Fetches profile + that user's latest rolling seven-day usage snapshot. */
-    fun fetchFriendEntry(uid: String, onResult: (FriendEntry?) -> Unit) {
+    /** Fetches profile + that user's latest usage snapshot (daily or rolling 7-day). */
+    fun fetchFriendEntry(uid: String, useRolling: Boolean = false, onResult: (FriendEntry?) -> Unit) {
         usersRef.child(uid).get()
             .addOnSuccessListener { profileSnap ->
                 val name = profileSnap.child("displayName").getValue(String::class.java)
@@ -114,7 +114,9 @@ object UserRepository {
                 }
                 val email = profileSnap.child("email").getValue(String::class.java).orEmpty()
                 val streak = profileSnap.child("streak").getValue(Int::class.java) ?: 0
-                usageRef.child(uid).child(todayKey()).get()
+                
+                val ref = if (useRolling) rollingUsageRef.child(uid) else usageRef.child(uid).child(todayKey())
+                ref.get()
                     .addOnSuccessListener { usageSnap ->
                         fun mins(key: String) =
                             usageSnap.child(key).getValue(Double::class.java) ?: 0.0

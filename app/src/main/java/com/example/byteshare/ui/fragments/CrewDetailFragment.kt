@@ -159,7 +159,7 @@ class CrewDetailFragment : Fragment() {
         val requestGeneration = ++memberLoadGeneration
 
         for (uid in memberUids) {
-            UserRepository.fetchFriendEntry(uid) { entry ->
+            UserRepository.fetchFriendEntry(uid, useRolling = true) { entry ->
                 entries.add(entry ?: FriendEntry(
                     uid = uid,
                     name = "Member",
@@ -241,9 +241,18 @@ class CrewDetailFragment : Fragment() {
 
                 payableAmountMinor = paysMinor
                 payableMultiplier = mult
+                
+                val prefs = requireContext().getSharedPreferences("ByteSharePrefs", android.content.Context.MODE_PRIVATE)
+                val hasPaid = prefs.getBoolean("crew_paid_${crew.id}", false)
+                
                 view.findViewById<Button>(R.id.btn_pay_stripe)?.apply {
-                    text = "Pay ${formatMoney(paysMinor)}"
-                    isEnabled = true
+                    if (hasPaid) {
+                        text = "Paid"
+                        isEnabled = false
+                    } else {
+                        text = "Pay ${formatMoney(paysMinor)}"
+                        isEnabled = true
+                    }
                 }
             }
 

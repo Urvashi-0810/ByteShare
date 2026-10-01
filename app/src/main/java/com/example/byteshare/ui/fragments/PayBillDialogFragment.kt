@@ -107,6 +107,8 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
                     "Payment of ${formatMoney(oweAmountMinor)} completed.",
                     Toast.LENGTH_LONG
                 ).show()
+                val prefs = requireContext().getSharedPreferences("ByteSharePrefs", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putBoolean("crew_paid_$crewId", true).apply()
                 dismiss()
             }
             is PaymentSheetResult.Canceled -> {
