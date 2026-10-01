@@ -30,7 +30,7 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
         oweAmountMinor = arguments?.getLong(ARG_OWE_AMOUNT) ?: 60000L
         multiplier = arguments?.getDouble(ARG_MULTIPLIER) ?: 1.0
 
-        paymentSheet = StripeManager.initPaymentSheet(this) { result ->
+        paymentSheet = PaymentSheet(this) { result ->
             handlePaymentResult(result)
         }
     }
