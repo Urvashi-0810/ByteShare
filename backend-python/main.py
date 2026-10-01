@@ -3,6 +3,8 @@ import os
 from decimal import Decimal, ROUND_FLOOR, ROUND_HALF_UP
 from typing import Annotated, Any
 import time
+from mangum import Mangum
+from firebase_functions import https_fn
 
 import firebase_admin
 import stripe
@@ -234,3 +236,11 @@ def sync_usage(body: UsageSyncBody) -> dict[str, str]:
 @app.get("/group/{group_id}/ranks")
 def get_group_ranks(group_id: str) -> dict[str, Any]:
     return {"groupId": group_id, "ranks": []}
+
+
+handler = Mangum(app)
+
+
+@https_fn.on_request()
+def api(req: https_fn.Request) -> https_fn.Response:
+    return handler(req)

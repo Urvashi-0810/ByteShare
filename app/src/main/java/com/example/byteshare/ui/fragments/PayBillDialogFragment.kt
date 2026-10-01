@@ -9,8 +9,8 @@ import android.widget.TextView
 import android.widget.Toast
 import com.example.byteshare.R
 import com.example.byteshare.data.StripePaymentRepository
-import com.example.byteshare.logic.StripeManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.stripe.android.PaymentConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 
@@ -20,6 +20,8 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
     private var crewId: String = ""
     private var oweAmountMinor: Long = 60000L
     private var multiplier: Double = 1.0
+
+    private lateinit var paymentSheet: PaymentSheet
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +42,11 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Instantiate PaymentSheet directly in onViewCreated as required by Stripe lifecycle
+        paymentSheet = PaymentSheet(this) { result ->
+            handlePaymentResult(result)
+        }
+
         view.findViewById<TextView>(R.id.txt_stripe_crew_name)?.text = crewName
         val oweAmount = formatMoney(oweAmountMinor)
         view.findViewById<TextView>(R.id.txt_stripe_amount)?.text = oweAmount
@@ -56,6 +63,7 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
             }
             btnPay.isEnabled = false
             btnPay.text = "Preparing secure checkout…"
+
             StripePaymentRepository.createCrewPaymentIntent(crewId) { payment, error ->
                 if (!isAdded) return@createCrewPaymentIntent
                 if (payment == null) {
@@ -77,19 +85,23 @@ class PayBillDialogFragment : BottomSheetDialogFragment() {
                         java.util.Locale.US, multiplier
                     )
 
-                val sheet = StripeManager.createPaymentSheet(this, payment.publishableKey) { result ->
-                    handlePaymentResult(result)
-                }
-                if (sheet == null || !StripeManager.presentPaymentSheet(sheet, payment.clientSecret)) {
+                // Initialize Stripe configuration
+                PaymentConfiguration.init(requireContext(), payment.publishableKey)
+
+                try {
+                    btnPay.text = "Opening secure checkout…"
+                    paymentSheet.presentWithPaymentIntent(
+                        payment.clientSecret,
+                        PaymentSheet.Configuration("ByteShare")
+                    )
+                } catch (e: Exception) {
                     btnPay.isEnabled = true
                     btnPay.text = "Pay ${formatMoney(oweAmountMinor)}"
                     Toast.makeText(
                         requireContext(),
-                        "Couldn't open Stripe checkout. Check payment configuration.",
+                        "Couldn't open Stripe checkout: ${e.message}",
                         Toast.LENGTH_LONG
                     ).show()
-                } else {
-                    btnPay.text = "Opening secure checkout…"
                 }
             }
         }
