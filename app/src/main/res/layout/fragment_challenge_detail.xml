@@ -206,6 +206,79 @@
                 </RelativeLayout>
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/group_crew_picker_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/card_chunky"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="CHOOSE CREW"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="12sp" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <Spinner
+                        android:id="@+id/spinner_group_crew"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:background="@drawable/spinner_chunky"
+                        android:popupBackground="@color/bg_cream" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|end"
+                        android:layout_marginEnd="14dp"
+                        android:fontFamily="sans-serif-black"
+                        android:text="▼"
+                        android:textColor="@color/primary_ink"
+                        android:textSize="12sp"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/txt_group_crew_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Create or join a crew before starting a group challenge."
+                    android:textColor="@color/gray_ink"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Only members of this crew can see its challenge progress."
+                    android:textColor="@color/gray_ink"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Loading Indicator -->
+            <ProgressBar
+                android:id="@+id/progress_loading"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/primary_ink"
+                android:visibility="gone" />
+
             <!-- ACCEPT CHALLENGE BUTTON -->
             <Button
                 android:id="@+id/btn_accept_challenge"
@@ -237,6 +310,7 @@
                 android:layout_marginTop="28dp">
 
                 <TextView
+                    android:id="@+id/txt_participants_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"

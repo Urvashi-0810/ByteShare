@@ -254,6 +254,37 @@ object FirebaseCrewRepository {
         }
     }
 
+    fun applyChallengeMultiplierReductionToCrew(
+        crewId: String,
+        challengeId: String,
+        reduction: Double,
+        onComplete: (Boolean) -> Unit = {}
+    ) {
+        val uid = AuthRepository.currentUserId
+        if (uid == null || reduction <= 0.0) {
+            onComplete(false)
+            return
+        }
+        crewsRef.child(crewId).child("members").child(uid).get()
+            .addOnSuccessListener { memberSnapshot ->
+                if (memberSnapshot.getValue(Boolean::class.java) != true) {
+                    onComplete(false)
+                    return@addOnSuccessListener
+                }
+                crewsRef.child(crewId).child("multiplierReductions").child(uid)
+                    .child(challengeId).setValue(reduction)
+                    .addOnSuccessListener { onComplete(true) }
+                    .addOnFailureListener { error ->
+                        Log.e(TAG, "Failed to store group challenge reduction", error)
+                        onComplete(false)
+                    }
+            }
+            .addOnFailureListener { error ->
+                Log.e(TAG, "Failed to verify group membership for challenge reward", error)
+                onComplete(false)
+            }
+    }
+
     fun saveBaselineMultipliersIfChanged(crewId: String, multipliers: Map<String, Double>) {
         val ref = crewsRef.child(crewId).child("baselineMultipliers")
         ref.get().addOnSuccessListener { snapshot ->

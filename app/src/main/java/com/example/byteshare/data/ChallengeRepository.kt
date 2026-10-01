@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import java.util.concurrent.atomic.AtomicInteger
 
 enum class ChallengeState { NOT_STARTED, ACTIVE, COMPLETED, FAILED }
 
@@ -36,12 +37,19 @@ data class ChallengeProgress(
     val minutesUsed: Double
 )
 
+data class ChallengeParticipant(
+    val uid: String,
+    val name: String,
+    val progress: ChallengeProgress
+)
+
 /**
  * Firebase-backed challenge definitions + per-user progress tracking.
  *
  * Database structure:
  *   challenges/{challengeId} -> ChallengeDef fields
- *   challengeProgress/{uid}/{challengeId} -> { state, startedAt, completedAt, minutesUsed }
+ *   challengeProgress/{uid}/{challengeId} -> personal challenge progress
+ *   groupChallengeProgress/{crewId}/{challengeId}/{uid} -> opted-in crew progress
  */
 object ChallengeRepository {
 
@@ -51,6 +59,7 @@ object ChallengeRepository {
     private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance(DB_URL) }
     private val defsRef: DatabaseReference by lazy { db.getReference("challenges") }
     private val progressRef: DatabaseReference by lazy { db.getReference("challengeProgress") }
+    private val groupProgressRef: DatabaseReference by lazy { db.getReference("groupChallengeProgress") }
 
     fun fetchChallenges(onResult: (List<ChallengeDef>) -> Unit) {
         defsRef.get()
@@ -210,5 +219,183 @@ object ChallengeRepository {
             completedAt = s.child("completedAt").getValue(Long::class.java) ?: 0L,
             minutesUsed = s.child("minutesUsed").getValue(Double::class.java) ?: 0.0
         )
+    }
+
+    fun startGroupChallenge(crewId: String, challengeId: String, onComplete: (Boolean) -> Unit) {
+        val uid = AuthRepository.currentUserId ?: return onComplete(false)
+        FirebaseCrewRepository.fetchMyCrewsOnce { crews ->
+            if (crews.none { it.id == crewId && it.members.containsKey(uid) }) {
+                onComplete(false)
+                return@fetchMyCrewsOnce
+            }
+            val progress = mapOf(
+                "state" to ChallengeState.ACTIVE.name,
+                "startedAt" to System.currentTimeMillis(),
+                "completedAt" to 0L,
+                "minutesUsed" to 0.0
+            )
+            groupProgressRef.child(crewId).child(challengeId).child(uid).setValue(progress)
+                .addOnSuccessListener { onComplete(true) }
+                .addOnFailureListener { error ->
+                    Log.e(TAG, "Failed to join group challenge $challengeId", error)
+                    onComplete(false)
+                }
+        }
+    }
+
+    fun abandonGroupChallenge(crewId: String, challengeId: String, onComplete: (Boolean) -> Unit) {
+        val uid = AuthRepository.currentUserId ?: return onComplete(false)
+        groupProgressRef.child(crewId).child(challengeId).child(uid).removeValue()
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    fun evaluateGroupChallenge(
+        context: Context,
+        crewId: String,
+        def: ChallengeDef,
+        onResult: (List<ChallengeParticipant>) -> Unit
+    ) {
+        val uid = AuthRepository.currentUserId ?: return onResult(emptyList())
+        groupProgressRef.child(crewId).child(def.id).get()
+            .addOnSuccessListener { snapshot ->
+                val progressByUid = snapshot.children.mapNotNull { child ->
+                    val participantUid = child.key ?: return@mapNotNull null
+                    participantUid to snapshotToProgress(child)
+                }.toMap().toMutableMap()
+                val current = progressByUid[uid]
+                if (current == null || current.state != ChallengeState.ACTIVE ||
+                    !UsageStatsCollector.hasPermission(context)
+                ) {
+                    fetchParticipantProfiles(progressByUid, onResult)
+                    return@addOnSuccessListener
+                }
+
+                val now = System.currentTimeMillis()
+                val windowEnd = current.startedAt + def.durationHours * 3_600_000L
+                val usage = UsageStatsCollector.collectUsageForWindow(
+                    context, current.startedAt, minOf(now, windowEnd)
+                )
+                val minutesUsed = usage.filter {
+                    def.type == "phone_free" || def.targetCategory.isEmpty() ||
+                            it.category == def.targetCategory
+                }.sumOf { it.minutes }
+                val newState = when {
+                    minutesUsed > def.limitMinutes -> ChallengeState.FAILED
+                    now >= windowEnd -> ChallengeState.COMPLETED
+                    else -> ChallengeState.ACTIVE
+                }
+                val updated = current.copy(
+                    state = newState,
+                    completedAt = if (newState == ChallengeState.ACTIVE) 0L else now,
+                    minutesUsed = minutesUsed
+                )
+                val updates = mapOf(
+                    "state" to newState.name,
+                    "completedAt" to updated.completedAt,
+                    "minutesUsed" to minutesUsed
+                )
+                groupProgressRef.child(crewId).child(def.id).child(uid).updateChildren(updates)
+                    .addOnSuccessListener {
+                        progressByUid[uid] = updated
+                        if (current.state == ChallengeState.ACTIVE &&
+                            newState == ChallengeState.COMPLETED && def.multiplierReduction > 0.0
+                        ) {
+                            FirebaseCrewRepository.applyChallengeMultiplierReductionToCrew(
+                                crewId, def.id, def.multiplierReduction
+                            ) {
+                                fetchParticipantProfiles(progressByUid, onResult)
+                            }
+                        } else {
+                            fetchParticipantProfiles(progressByUid, onResult)
+                        }
+                    }
+                    .addOnFailureListener { error ->
+                        Log.e(TAG, "Failed to update group challenge progress", error)
+                        fetchParticipantProfiles(progressByUid, onResult)
+                    }
+            }
+            .addOnFailureListener { error ->
+                Log.e(TAG, "Failed to load group challenge participants", error)
+                onResult(emptyList())
+            }
+    }
+
+    /**
+     * Fan-out read across all the user's crews to find their group challenge
+     * participation.  Returns two maps keyed by challengeId:
+     *  - progress: the user's "best" state (COMPLETED > ACTIVE > FAILED)
+     *  - participantCounts: number of opted-in members per challenge
+     */
+    fun fetchMyGroupProgressAcrossCrews(
+        onResult: (progress: Map<String, ChallengeProgress>, participantCounts: Map<String, Int>) -> Unit
+    ) {
+        val uid = AuthRepository.currentUserId ?: return onResult(emptyMap(), emptyMap())
+        FirebaseCrewRepository.fetchMyCrewsOnce { crews ->
+            if (crews.isEmpty()) {
+                onResult(emptyMap(), emptyMap())
+                return@fetchMyCrewsOnce
+            }
+            val progressResult = mutableMapOf<String, ChallengeProgress>()
+            val countResult = mutableMapOf<String, Int>()
+            val pending = AtomicInteger(crews.size)
+            for (crew in crews) {
+                groupProgressRef.child(crew.id).get()
+                    .addOnSuccessListener { crewSnapshot ->
+                        synchronized(progressResult) {
+                            for (challengeSnap in crewSnapshot.children) {
+                                val challengeId = challengeSnap.key ?: continue
+                                val totalParticipants = challengeSnap.childrenCount.toInt()
+                                countResult[challengeId] = maxOf(
+                                    countResult[challengeId] ?: 0, totalParticipants
+                                )
+                                val userSnap = challengeSnap.child(uid)
+                                if (!userSnap.exists()) continue
+                                val progress = snapshotToProgress(userSnap)
+                                val existing = progressResult[challengeId]
+                                if (existing == null ||
+                                    statePriority(progress.state) > statePriority(existing.state)
+                                ) {
+                                    progressResult[challengeId] = progress
+                                }
+                            }
+                        }
+                        if (pending.decrementAndGet() == 0) onResult(progressResult, countResult)
+                    }
+                    .addOnFailureListener {
+                        if (pending.decrementAndGet() == 0) onResult(progressResult, countResult)
+                    }
+            }
+        }
+    }
+
+    /** Priority order for picking the "best" state across crews. */
+    private fun statePriority(state: ChallengeState): Int = when (state) {
+        ChallengeState.COMPLETED -> 3
+        ChallengeState.ACTIVE -> 2
+        ChallengeState.FAILED -> 1
+        ChallengeState.NOT_STARTED -> 0
+    }
+
+    private fun fetchParticipantProfiles(
+        progressByUid: Map<String, ChallengeProgress>,
+        onResult: (List<ChallengeParticipant>) -> Unit
+    ) {
+        if (progressByUid.isEmpty()) {
+            onResult(emptyList())
+            return
+        }
+        val participants = mutableListOf<ChallengeParticipant>()
+        val pending = AtomicInteger(progressByUid.size)
+        progressByUid.forEach { (uid, progress) ->
+            UserRepository.fetchFriendEntry(uid) { entry ->
+                synchronized(participants) {
+                    participants.add(ChallengeParticipant(uid, entry?.name ?: "Member", progress))
+                }
+                if (pending.decrementAndGet() == 0) {
+                    onResult(participants.sortedBy { it.name.lowercase() })
+                }
+            }
+        }
     }
 }
