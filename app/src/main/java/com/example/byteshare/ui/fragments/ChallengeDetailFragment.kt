@@ -42,11 +42,13 @@ class ChallengeDetailFragment : Fragment() {
 
         view.findViewById<Button>(R.id.btn_watch_rewarded_ad)?.setOnClickListener {
             AdManager.showRewardedAd(requireActivity()) { rewardAmount ->
-                Toast.makeText(
-                    requireContext(),
-                    "🎉 Earned +20 Social XP! Reward level: $rewardAmount",
-                    Toast.LENGTH_LONG
-                ).show()
+                com.example.byteshare.data.XpRepository.addXp(requireContext(), 20, "Watched Rewarded Ad") { newXp ->
+                    Toast.makeText(
+                        requireContext(),
+                        "🎉 +20 Social XP Added! Total XP: $newXp",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
 

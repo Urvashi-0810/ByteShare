@@ -6,18 +6,24 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.byteshare.LoginActivity
 import com.example.byteshare.R
 import com.example.byteshare.data.AuthRepository
 import com.example.byteshare.data.FirebaseCrewRepository
 import com.example.byteshare.data.UsageStatsCollector
+import com.example.byteshare.data.XpRepository
+import com.example.byteshare.logic.AdManager
+import com.google.firebase.database.ValueEventListener
 
 class MeFragment : Fragment() {
+
+    private var xpListener: ValueEventListener? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_me, container, false)
@@ -29,8 +35,9 @@ class MeFragment : Fragment() {
             PaywallDialogFragment.show(parentFragmentManager)
         }
         setupProfile(view)
+        setupXpAndStreak(view)
         loadCrewStats(view)
-        view.findViewById<View>(R.id.btn_grant_usage_me).setOnClickListener {
+        view.findViewById<View>(R.id.btn_grant_usage_me)?.setOnClickListener {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
     }
@@ -53,6 +60,51 @@ class MeFragment : Fragment() {
         }
     }
 
+    private fun setupXpAndStreak(view: View) {
+        val badgeStreak = view.findViewById<TextView>(R.id.badge_user_streak)
+        val badgeXp = view.findViewById<TextView>(R.id.badge_user_xp)
+        val btnEarnXp = view.findViewById<Button>(R.id.btn_earn_xp_ad)
+
+        // Initial UI display
+        val currentXp = XpRepository.getXp()
+        val currentStreak = XpRepository.getStreak()
+        val currentLevel = XpRepository.getLevel(currentXp)
+        badgeStreak?.text = "🔥 $currentStreak Day Streak"
+        badgeXp?.text = "⭐️ $currentXp XP (Level $currentLevel)"
+
+        // Listen for real-time Firebase XP updates
+        xpListener = XpRepository.listenForXp { xp, streak, level ->
+            if (isAdded) {
+                badgeStreak?.text = "🔥 $streak Day Streak"
+                badgeXp?.text = "⭐️ $xp XP (Level $level)"
+            }
+        }
+
+        // Rewarded Video Ad button to earn +20 XP
+        btnEarnXp?.setOnClickListener {
+            AdManager.showRewardedAd(requireActivity()) { _ ->
+                XpRepository.addXp(requireContext(), 20, "Profile Rewarded Ad Watch") { newXp ->
+                    val newLevel = XpRepository.getLevel(newXp)
+                    badgeXp?.text = "⭐️ $newXp XP (Level $newLevel)"
+                    Toast.makeText(requireContext(), "🎉 Earned +20 Social XP! Total: $newXp XP", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clean up listener
+        xpListener?.let {
+            val uid = AuthRepository.currentUserId
+            if (uid != null) {
+                com.google.firebase.database.FirebaseDatabase.getInstance("https://test-e06f1-default-rtdb.firebaseio.com")
+                    .getReference("users").child(uid).removeEventListener(it)
+            }
+        }
+        xpListener = null
+    }
+
     private fun loadCrewStats(view: View) {
         FirebaseCrewRepository.fetchMyCrewsOnce { crews ->
             if (!isAdded) return@fetchMyCrewsOnce
@@ -69,10 +121,9 @@ class MeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh when returning from the Usage Access settings screen
         view?.let { v ->
             val granted = UsageStatsCollector.hasPermission(requireContext())
-            v.findViewById<View>(R.id.usage_permission_card).visibility =
+            v.findViewById<View>(R.id.usage_permission_card)?.visibility =
                 if (granted) View.GONE else View.VISIBLE
             if (granted) updateUsageUI(v)
         }
@@ -88,24 +139,20 @@ class MeFragment : Fragment() {
         
         val totalMinutes = socialTime + streamTime + neutralTime + productiveTime
         
-        // Update Time Texts
         view.findViewById<TextView>(R.id.txt_social_time).text = formatTime(socialTime)
         view.findViewById<TextView>(R.id.txt_stream_time).text = formatTime(streamTime)
         view.findViewById<TextView>(R.id.txt_neutral_time).text = formatTime(neutralTime)
         view.findViewById<TextView>(R.id.txt_productive_time).text = formatTime(productiveTime)
         
-        // Update Progress Bar Weights
         val divisor = totalMinutes.takeIf { it > 0.0 } ?: 1.0
         updateWeight(view.findViewById(R.id.progress_social), socialTime / divisor)
         updateWeight(view.findViewById(R.id.progress_stream), streamTime / divisor)
         updateWeight(view.findViewById(R.id.progress_neutral), neutralTime / divisor)
         updateWeight(view.findViewById(R.id.progress_productive), productiveTime / divisor)
         
-        // Update App List (Bifurcation)
-        val appListContainer = view.findViewById<LinearLayout>(R.id.app_list_container)
+        val appListContainer = view.findViewById<LinearLayout>(R.id.app_list_container) ?: return
         appListContainer.removeAllViews()
         
-        // Show top 5 apps
         usageData.take(5).forEach { app ->
             val itemView = layoutInflater.inflate(R.layout.item_app_usage, appListContainer, false)
             itemView.findViewById<TextView>(R.id.txt_app_name).text = app.appName
@@ -124,7 +171,8 @@ class MeFragment : Fragment() {
         return "${minutes.toInt()}m"
     }
 
-    private fun updateWeight(view: View, weight: Double) {
+    private fun updateWeight(view: View?, weight: Double) {
+        if (view == null) return
         val params = view.layoutParams as LinearLayout.LayoutParams
         params.weight = weight.toFloat()
         view.layoutParams = params
