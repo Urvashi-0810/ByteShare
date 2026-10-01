@@ -226,6 +226,51 @@ object FirebaseCrewRepository {
             }
     }
 
+    fun applyChallengeMultiplierReduction(
+        challengeId: String,
+        reduction: Double,
+        onComplete: (Boolean) -> Unit = {}
+    ) {
+        val uid = AuthRepository.currentUserId
+        if (uid == null || reduction <= 0.0) {
+            onComplete(false)
+            return
+        }
+        fetchMyCrewsOnce { crews ->
+            val updates = mutableMapOf<String, Any>()
+            crews.filter { it.members.containsKey(uid) }.forEach { crew ->
+                updates["/crews/${crew.id}/multiplierReductions/$uid/$challengeId"] = reduction
+            }
+            if (updates.isEmpty()) {
+                onComplete(true)
+            } else {
+                db.reference.updateChildren(updates)
+                    .addOnSuccessListener { onComplete(true) }
+                    .addOnFailureListener { error ->
+                        Log.e(TAG, "Failed to store challenge reduction", error)
+                        onComplete(false)
+                    }
+            }
+        }
+    }
+
+    fun saveBaselineMultipliersIfChanged(crewId: String, multipliers: Map<String, Double>) {
+        val ref = crewsRef.child(crewId).child("baselineMultipliers")
+        ref.get().addOnSuccessListener { snapshot ->
+            val current = snapshot.children.mapNotNull { child ->
+                val memberUid = child.key ?: return@mapNotNull null
+                val value = child.getValue(Double::class.java) ?: return@mapNotNull null
+                memberUid to value
+            }.toMap()
+            val unchanged = current.keys == multipliers.keys && multipliers.all { (memberUid, value) ->
+                kotlin.math.abs((current[memberUid] ?: Double.NaN) - value) < 0.0005
+            }
+            if (!unchanged) ref.setValue(multipliers)
+        }.addOnFailureListener { error ->
+            Log.e(TAG, "Failed to check crew multiplier snapshot", error)
+        }
+    }
+
     fun listenForCrew(crewId: String, onUpdate: (Crew?) -> Unit): ValueEventListener? {
         return try {
             val listener = object : ValueEventListener {
@@ -235,6 +280,7 @@ object FirebaseCrewRepository {
 
                 override fun onCancelled(error: DatabaseError) {
                     Log.e(TAG, "Single crew listener cancelled", error.toException())
+                    onUpdate(null)
                 }
             }
             crewsRef.child(crewId).addValueEventListener(listener)
@@ -267,6 +313,20 @@ object FirebaseCrewRepository {
             val members = snapshot.child("members").children
                 .mapNotNull { it.key }
                 .associateWith { true }
+            val multiplierReductions = snapshot.child("multiplierReductions").children
+                .mapNotNull { child ->
+                    val uid = child.key ?: return@mapNotNull null
+                    val reduction = child.children.sumOf {
+                        it.getValue(Double::class.java) ?: 0.0
+                    }
+                    uid to reduction
+                }.toMap()
+            val baselineMultipliers = snapshot.child("baselineMultipliers").children
+                .mapNotNull { child ->
+                    val uid = child.key ?: return@mapNotNull null
+                    val multiplier = child.getValue(Double::class.java) ?: return@mapNotNull null
+                    uid to multiplier
+                }.toMap()
 
             // Derive count/owe from members: avoids stale counters and join races
             val memberCount = members.size.coerceAtLeast(1)
@@ -280,7 +340,9 @@ object FirebaseCrewRepository {
                 oweAmount = totalBill / memberCount,
                 inviteCode = inviteCode,
                 createdBy = createdBy,
-                members = members
+                members = members,
+                multiplierReductions = multiplierReductions,
+                baselineMultipliers = baselineMultipliers
             )
         } catch (e: Exception) {
             Log.e(TAG, "Exception parsing crew snapshot", e)

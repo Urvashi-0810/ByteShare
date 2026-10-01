@@ -27,7 +27,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="🐼"
+                android:text="?"
                 android:textSize="20sp" />
         </FrameLayout>
 
@@ -37,7 +37,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:fontFamily="sans-serif-bold"
-            android:text="Rahul"
             android:textColor="@color/primary_ink"
             android:textSize="16sp" />
 
@@ -64,7 +63,6 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:fontFamily="sans-serif-bold"
-        android:text="0.50"
         android:textColor="@color/gray_ink"
         android:textSize="15sp" />
 
@@ -75,7 +73,6 @@
         android:layout_height="wrap_content"
         android:gravity="end"
         android:fontFamily="sans-serif-black"
-        android:text="₹250"
         android:textColor="@color/primary_ink"
         android:textSize="18sp" />
 

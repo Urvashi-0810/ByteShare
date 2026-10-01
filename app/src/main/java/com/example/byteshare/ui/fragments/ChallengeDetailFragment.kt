@@ -28,16 +28,26 @@ class ChallengeDetailFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_challenge_detail, container, false)
-    }
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? = inflater.inflate(R.layout.fragment_challenge_detail, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<ImageView>(R.id.btn_back_challenge).setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+
+        view.findViewById<Button>(R.id.btn_watch_rewarded_ad)?.setOnClickListener {
+            AdManager.showRewardedAd(requireActivity()) { rewardAmount ->
+                Toast.makeText(
+                    requireContext(),
+                    "🎉 Earned +20 Social XP! Reward level: $rewardAmount",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 
         val id = challengeId ?: return
@@ -70,31 +80,6 @@ class ChallengeDetailFragment : Fragment() {
         val btn = view.findViewById<Button>(R.id.btn_accept_challenge)
         val state = progress?.state ?: ChallengeState.NOT_STARTED
 
-        // Participants panel shows own tracking status (group aggregation is a later phase)
-        // Accept button
-        val btnAccept = view.findViewById<Button>(R.id.btn_accept_challenge)
-        var isAccepted = false
-
-        btnAccept.setOnClickListener {
-            isAccepted = !isAccepted
-            if (isAccepted) {
-                btnAccept.text = "Challenge Accepted! ✓"
-                btnAccept.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.accent_lime)
-                btnAccept.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_ink))
-                Toast.makeText(requireContext(), "Accepted '${def.title}'!", Toast.LENGTH_SHORT).show()
-            } else {
-                btnAccept.text = "Accept Challenge"
-                btnAccept.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.primary_ink)
-                btnAccept.setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_lime))
-            }
-        }
-
-        // Rewarded Video Ad button
-        view.findViewById<Button>(R.id.btn_watch_rewarded_ad)?.setOnClickListener {
-            AdManager.showRewardedAd(requireActivity()) { rewardAmount ->
-                Toast.makeText(requireContext(), "🎉 Earned +20 Social XP! Reward level: $rewardAmount", Toast.LENGTH_LONG).show()
-            }
-        }
         val container = view.findViewById<LinearLayout>(R.id.participants_container)
         container.removeAllViews()
         if (progress != null && state != ChallengeState.NOT_STARTED) {
@@ -149,7 +134,7 @@ class ChallengeDetailFragment : Fragment() {
                 }
             }
             ChallengeState.COMPLETED -> {
-                styleButton(btn, "Completed \u2713", R.color.accent_lime, R.color.primary_ink)
+                styleButton(btn, "Completed ✓", R.color.accent_lime, R.color.primary_ink)
                 btn.isEnabled = false
             }
             ChallengeState.FAILED -> {

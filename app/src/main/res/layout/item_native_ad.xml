@@ -97,7 +97,6 @@
             style="@style/ByteShareButton"
             android:layout_marginTop="12dp"
             android:background="@drawable/button_chunky"
-            android:backgroundTint="@color/accent_lime"
             android:textColor="@color/primary_ink"
             android:textSize="14sp" />
 

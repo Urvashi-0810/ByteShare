@@ -79,6 +79,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:background="@drawable/button_chunky"
+                    android:backgroundTint="@null"
                     android:paddingVertical="12dp"
                     android:text="Grant Access"
                     android:textAllCaps="false"
@@ -218,7 +219,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:text="Your screen time"
+                    android:text="Your screen time · last 7 days"
                     android:textColor="@color/primary_ink"
                     android:textSize="20sp" />
 

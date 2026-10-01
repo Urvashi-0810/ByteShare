@@ -56,8 +56,7 @@
         android:id="@+id/btn_join_crew_submit"
         style="@style/ByteShareButton"
         android:layout_marginTop="28dp"
-        android:background="@drawable/button_chunky"
-        android:backgroundTint="@color/primary_ink"
+        android:background="@drawable/button_chunky_ink"
         android:text="Join crew"
         android:textColor="@color/accent_lime" />
 

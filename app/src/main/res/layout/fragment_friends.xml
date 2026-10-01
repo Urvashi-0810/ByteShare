@@ -76,6 +76,8 @@
                     android:background="@android:color/transparent"
                     android:hint="Search friends..."
                     android:inputType="text"
+                    android:textColor="@color/primary_ink"
+                    android:textColorHint="@color/gray_ink"
                     android:textSize="16sp" />
             </LinearLayout>
 
@@ -122,11 +124,38 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:background="@drawable/button_chunky"
+                    android:backgroundTint="@null"
                     android:paddingVertical="12dp"
                     android:text="Allow Contacts"
                     android:textAllCaps="false"
                     android:textColor="@color/primary_ink"
                     android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nudge_inbox_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/card_chunky"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="NUDGES FOR YOU"
+                    android:textColor="@color/primary_ink"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/nudge_inbox_messages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
             </LinearLayout>
 
             <LinearLayout

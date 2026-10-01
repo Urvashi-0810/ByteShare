@@ -211,8 +211,7 @@
                 android:id="@+id/btn_accept_challenge"
                 style="@style/ByteShareButton"
                 android:layout_marginTop="20dp"
-                android:background="@drawable/button_chunky"
-                android:backgroundTint="@color/primary_ink"
+                android:background="@drawable/button_chunky_ink"
                 android:text="Accept Challenge"
                 android:textColor="@color/accent_lime" />
 
@@ -222,7 +221,6 @@
                 style="@style/ByteShareButton"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/button_chunky"
-                android:backgroundTint="@color/accent_lime"
                 android:text="🎬 Watch Video Ad for +20 Social XP ⭐️"
                 android:textColor="@color/primary_ink"
                 android:textSize="13sp" />

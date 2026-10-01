@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
+val paymentsApiBaseUrl = providers.gradleProperty("paymentsApiBaseUrl").orElse("").get()
+
 android {
     namespace = "com.example.byteshare"
     compileSdk = 35
@@ -14,6 +16,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "PAYMENTS_API_BASE_URL", "\"${paymentsApiBaseUrl}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,6 +32,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 
