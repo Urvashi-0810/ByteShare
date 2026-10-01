@@ -38,14 +38,44 @@ class TasksFragment : Fragment() {
     private fun loadChallenges() {
         ChallengeRepository.fetchChallenges { defs ->
             if (!isAdded) return@fetchChallenges
-            // Evaluate active windows so states are fresh before rendering
+
+            // Personal progress + group progress in parallel
+            var personalProgress: Map<String, ChallengeProgress>? = null
+            var groupProgress: Map<String, ChallengeProgress>? = null
+            var participantCounts: Map<String, Int>? = null
+
+            val tryRender = {
+                val pp = personalProgress
+                val gp = groupProgress
+                val pc = participantCounts
+                if (pp != null && gp != null && pc != null && isAdded) {
+                    // Merge: group progress wins for group challenges
+                    val merged = pp.toMutableMap()
+                    gp.forEach { (id, progress) -> merged[id] = progress }
+                    renderChallenges(defs, merged, pc)
+                }
+            }
+
+            // Evaluate personal challenges (also evaluates active windows)
             ChallengeRepository.evaluateActiveChallenges(requireContext(), defs) { progress ->
-                if (isAdded) renderChallenges(defs, progress)
+                personalProgress = progress
+                tryRender()
+            }
+
+            // Fetch group challenge statuses across all crews
+            ChallengeRepository.fetchMyGroupProgressAcrossCrews { progress, counts ->
+                groupProgress = progress
+                participantCounts = counts
+                tryRender()
             }
         }
     }
 
-    private fun renderChallenges(defs: List<ChallengeDef>, progress: Map<String, ChallengeProgress>) {
+    private fun renderChallenges(
+        defs: List<ChallengeDef>,
+        progress: Map<String, ChallengeProgress>,
+        participantCounts: Map<String, Int>
+    ) {
         individualContainer.removeAllViews()
         groupContainer.removeAllViews()
 
@@ -66,7 +96,20 @@ class TasksFragment : Fragment() {
                 else -> challenge.rewardBadge
             }
 
-            itemView.findViewById<TextView>(R.id.txt_pod_count).visibility = View.GONE
+            // Show participant count for group challenges
+            val podCount = itemView.findViewById<TextView>(R.id.txt_pod_count)
+            if (challenge.isGroupPod) {
+                val count = participantCounts[challenge.id] ?: 0
+                if (count > 0) {
+                    podCount.text = "👥 $count active"
+                    podCount.visibility = View.VISIBLE
+                } else {
+                    podCount.text = "👥 GROUP"
+                    podCount.visibility = View.VISIBLE
+                }
+            } else {
+                podCount.visibility = View.GONE
+            }
 
             itemView.setOnClickListener {
                 openChallengeDetail(challenge.id)
@@ -83,4 +126,4 @@ class TasksFragment : Fragment() {
             .addToBackStack(null)
             .commit()
     }
-}
+}
