@@ -26,6 +26,12 @@
         <item name="android:paddingHorizontal">24dp</item>
     </style>
 
+    <!-- Default for every <Button>: keep our drawable backgrounds untinted, ink text -->
+    <style name="ByteShareMaterialButton" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@null</item>
+        <item name="android:textColor">@color/primary_ink</item>
+    </style>
+
     <!-- Header Text Styles -->
     <style name="ByteShareTitle">
         <item name="android:textSize">32sp</item>

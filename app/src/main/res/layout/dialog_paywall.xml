@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:fontFamily="sans-serif-medium"
-        android:text="100% Ad-Free Experience &amp; VIP Perks"
+        android:text="100% Ad-Free Experience"
         android:textColor="@color/gray_ink"
         android:textSize="14sp" />
 
@@ -90,7 +90,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Removes Banner, Native, &amp; Video Ads"
+                    android:text="Removes banner &amp; sponsored ads"
                     android:textColor="@color/gray_ink"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -100,11 +100,13 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginVertical="12dp"
-            android:background="#E5E5EA" />
+            android:background="#E5E5EA"
+            android:visibility="gone" />
 
-        <!-- Perk 2 -->
+        <!-- Perk 2: hidden until the feature is implemented -->
         <LinearLayout
             android:layout_width="match_parent"
+            android:visibility="gone"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -142,11 +144,13 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginVertical="12dp"
-            android:background="#E5E5EA" />
+            android:background="#E5E5EA"
+            android:visibility="gone" />
 
-        <!-- Perk 3 -->
+        <!-- Perk 3: hidden until the feature is implemented -->
         <LinearLayout
             android:layout_width="match_parent"
+            android:visibility="gone"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -209,9 +213,10 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/txt_plan_trial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7-Day Free Trial • Cancel Anytime"
+                android:text="Cancel Anytime"
                 android:textColor="@color/primary_ink"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -223,7 +228,7 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:fontFamily="sans-serif-black"
-            android:text="$2.99 / mo"
+            android:text="…"
             android:textColor="@color/primary_ink"
             android:textSize="18sp" />
     </RelativeLayout>
@@ -236,7 +241,7 @@
         android:background="@drawable/button_chunky_ink"
         android:backgroundTint="@null"
         app:backgroundTint="@null"
-        android:text="Unlock ByteShare Pro ($2.99/mo)"
+        android:text="Loading plans…"
         android:textColor="@color/accent_lime"
         android:textSize="15sp"
         android:textStyle="bold" />

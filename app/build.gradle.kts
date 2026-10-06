@@ -5,18 +5,24 @@ plugins {
 }
 
 val paymentsApiBaseUrl = providers.gradleProperty("paymentsApiBaseUrl").orElse("").get()
+val revenueCatApiKey = providers.gradleProperty("REVENUECAT_API_KEY").orElse("").get()
+// Defaults to the policy page served by the backend
+val privacyPolicyUrl = providers.gradleProperty("privacyPolicyUrl")
+    .orElse(paymentsApiBaseUrl.trimEnd('/') + "/privacy").get()
 
 android {
-    namespace = "com.example.byteshare"
-    compileSdk = 35
+    namespace = "com.byteshare.android"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.byteshare"
+        applicationId = "com.byteshare.android"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "PAYMENTS_API_BASE_URL", "\"${paymentsApiBaseUrl}\"")
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"${revenueCatApiKey}\"")
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${privacyPolicyUrl}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,7 +53,7 @@ dependencies {
     
     // AdMob & RevenueCat & Stripe
     implementation("com.google.android.gms:play-services-ads:23.6.0")
-    implementation("com.revenuecat.purchases:purchases:8.12.0")
+    implementation("com.revenuecat.purchases:purchases:9.29.1")
     implementation("com.stripe:stripe-android:21.5.0")
 
     // Firebase BoM & Services

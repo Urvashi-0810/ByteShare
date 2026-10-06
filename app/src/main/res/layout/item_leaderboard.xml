@@ -96,12 +96,12 @@
         android:layout_height="38dp"
         android:layout_gravity="end"
         android:layout_marginTop="8dp"
-        android:background="@drawable/button_chunky_ink"
+        android:background="@drawable/button_chunky"
         android:minHeight="0dp"
         android:paddingHorizontal="14dp"
         android:text="SEND NUDGE"
         android:textAllCaps="false"
-        android:textColor="@color/accent_lime"
+        android:textColor="@color/primary_ink"
         android:textSize="12sp"
         android:textStyle="bold" />
 
