@@ -414,8 +414,7 @@ explains what we collect, why, and who can see it.</p>
 
 <h2>What we collect</h2>
 <ul>
-<li><strong>Account:</strong> your name, email address and profile photo from Google Sign-In, or an
-anonymous ID if you continue as a guest.</li>
+<li><strong>Account:</strong> your name, email address and profile photo from Google Sign-In.</li>
 <li><strong>Screen time:</strong> with your permission (Usage Access), the app measures time spent in
 apps on your device. We upload only daily and 7-day <em>totals per category</em> (social, streaming,
 neutral, productivity). App names and activity inside apps stay on your device.</li>

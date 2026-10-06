@@ -27,9 +27,8 @@ import java.util.TimeZone
 object XpRepository {
 
     private const val TAG = "XpRepository"
-    private const val DB_URL = "https://test-e06f1-default-rtdb.firebaseio.com"
 
-    private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance(DB_URL) }
+    private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance() }
     private val xpRef: DatabaseReference by lazy { db.getReference("xp") }
 
     // Local cache — seeded from Firebase on first listen/fetch

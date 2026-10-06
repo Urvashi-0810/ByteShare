@@ -29,7 +29,7 @@ object AccountRepository {
         val appContext = context.applicationContext
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
-            // Local guest session: nothing stored server-side
+            // Not signed in: nothing stored server-side for this device
             clearLocalData(appContext) { onResult(null) }
             return
         }
@@ -93,7 +93,7 @@ object AccountRepository {
     private fun clearLocalData(context: Context, onDone: () -> Unit) {
         WorkManager.getInstance(context).cancelAllWork()
         context.getSharedPreferences("ByteSharePrefs", Context.MODE_PRIVATE).edit().clear().apply()
-        // signOut also clears the stored guest uid and Credential Manager state
+        // signOut also clears Credential Manager state
         AuthRepository.signOut(context, onDone)
     }
 }

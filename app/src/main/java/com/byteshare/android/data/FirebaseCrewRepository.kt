@@ -3,6 +3,7 @@ package com.byteshare.android.data
 import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
@@ -18,11 +19,10 @@ import com.google.firebase.database.ValueEventListener
 object FirebaseCrewRepository {
 
     private const val TAG = "FirebaseCrewRepo"
-    private const val DB_URL = "https://test-e06f1-default-rtdb.firebaseio.com"
 
     // Lazy init to avoid crash if Firebase isn't ready at class-load time
     private val db: FirebaseDatabase by lazy {
-        FirebaseDatabase.getInstance(DB_URL)
+        FirebaseDatabase.getInstance()
     }
     private val crewsRef: DatabaseReference by lazy { db.getReference("crews") }
     private val inviteCodesRef: DatabaseReference by lazy { db.getReference("inviteCodes") }
@@ -30,12 +30,13 @@ object FirebaseCrewRepository {
 
     // ---------- Write operations ----------
 
-    fun createCrew(crew: Crew, onComplete: (Boolean) -> Unit = {}) {
+    /** [onComplete] receives null on success, or a user-facing error message. */
+    fun createCrew(crew: Crew, onComplete: (String?) -> Unit = {}) {
         try {
             val uid = AuthRepository.currentUserId
             if (uid == null) {
                 Log.e(TAG, "Cannot create crew: not signed in")
-                onComplete(false)
+                onComplete("You're signed out. Sign in again to create a crew.")
                 return
             }
 
@@ -59,15 +60,25 @@ object FirebaseCrewRepository {
             db.reference.updateChildren(updates)
                 .addOnSuccessListener {
                     Log.d(TAG, "Crew '${crew.name}' created with ID ${crew.id}")
-                    onComplete(true)
+                    onComplete(null)
                 }
                 .addOnFailureListener { e ->
                     Log.e(TAG, "Failed to create crew", e)
-                    onComplete(false)
+                    val code = (e as? DatabaseException)?.let { DatabaseError.fromException(it).code }
+                    onComplete(
+                        when {
+                            code == DatabaseError.PERMISSION_DENIED ||
+                                e.message?.contains("Permission denied", ignoreCase = true) == true ->
+                                "Couldn't create crew: permission denied by the database rules."
+                            code == DatabaseError.DISCONNECTED || code == DatabaseError.NETWORK_ERROR ->
+                                "Couldn't create crew: no connection. Check your internet and try again."
+                            else -> "Couldn't create crew: ${e.localizedMessage}"
+                        }
+                    )
                 }
         } catch (e: Exception) {
             Log.e(TAG, "Exception creating crew", e)
-            onComplete(false)
+            onComplete("Couldn't create crew: ${e.localizedMessage}")
         }
     }
 

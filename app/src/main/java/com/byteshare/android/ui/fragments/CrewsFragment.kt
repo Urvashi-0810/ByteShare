@@ -138,13 +138,13 @@ class CrewsFragment : Fragment() {
             )
 
             // Write to Firebase — the real-time listener will auto-refresh the list
-            FirebaseCrewRepository.createCrew(newCrew) { success ->
+            FirebaseCrewRepository.createCrew(newCrew) { error ->
                 if (isAdded) {
-                    if (success) {
+                    if (error == null) {
                         Toast.makeText(requireContext(), "Crew '$name' created!", Toast.LENGTH_SHORT).show()
                         openCrewDetail(newCrew.id)
                     } else {
-                        Toast.makeText(requireContext(), "Failed to create crew. Check connection.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
                     }
                 }
             }

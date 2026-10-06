@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.byteshare.android.data.AuthRepository
+import com.google.firebase.auth.FirebaseUser
 import com.byteshare.android.ui.SystemBarInsets
 
 class LoginActivity : AppCompatActivity() {
@@ -23,28 +25,23 @@ class LoginActivity : AppCompatActivity() {
         SystemBarInsets.apply(this)
 
         val btnSignIn = findViewById<Button>(R.id.btn_google_sign_in)
-        val btnGuest = findViewById<Button>(R.id.btn_guest_sign_in)
         val progress = findViewById<ProgressBar>(R.id.login_progress)
 
-        btnSignIn?.setOnClickListener {
-            btnSignIn.isEnabled = false
-            btnGuest?.isEnabled = false
-            progress?.visibility = View.VISIBLE
-
-            AuthRepository.signInWithGoogle(this) { _, _ ->
-                // Proceed immediately to MainActivity (either signed into Firebase or Guest Mode)
-                goToMain()
-            }
+        fun setBusy(busy: Boolean) {
+            btnSignIn?.isEnabled = !busy
+            progress?.visibility = if (busy) View.VISIBLE else View.GONE
         }
 
-        btnGuest?.setOnClickListener {
-            btnSignIn?.isEnabled = false
-            btnGuest.isEnabled = false
-            progress?.visibility = View.VISIBLE
-
-            AuthRepository.signInAnonymously(this) { _, _ ->
-                // Proceed immediately to MainActivity
-                goToMain()
+        btnSignIn?.setOnClickListener {
+            setBusy(true)
+            // Only continue once Firebase has a signed-in user; otherwise stay here and say why
+            AuthRepository.signInWithGoogle(this) { user: FirebaseUser?, error: String? ->
+                if (user != null) {
+                    goToMain()
+                } else {
+                    setBusy(false)
+                    if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

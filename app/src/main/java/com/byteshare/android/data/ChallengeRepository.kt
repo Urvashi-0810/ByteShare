@@ -55,9 +55,8 @@ data class ChallengeParticipant(
 object ChallengeRepository {
 
     private const val TAG = "ChallengeRepo"
-    private const val DB_URL = "https://test-e06f1-default-rtdb.firebaseio.com"
 
-    private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance(DB_URL) }
+    private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance() }
     private val defsRef: DatabaseReference by lazy { db.getReference("challenges") }
     private val progressRef: DatabaseReference by lazy { db.getReference("challengeProgress") }
     private val groupProgressRef: DatabaseReference by lazy { db.getReference("groupChallengeProgress") }

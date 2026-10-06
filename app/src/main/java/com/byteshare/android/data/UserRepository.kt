@@ -25,10 +25,9 @@ import java.util.TimeZone
 object UserRepository {
 
     private const val TAG = "UserRepository"
-    private const val DB_URL = "https://test-e06f1-default-rtdb.firebaseio.com"
     private const val MAX_SCORE_AGE_MS = 24L * 60 * 60 * 1000
 
-    private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance(DB_URL) }
+    private val db: FirebaseDatabase by lazy { FirebaseDatabase.getInstance() }
     private val usersRef: DatabaseReference by lazy { db.getReference("users") }
     private val usageRef: DatabaseReference by lazy { db.getReference("usageDaily") }
     private val rollingUsageRef: DatabaseReference by lazy { db.getReference("usageRolling") }
